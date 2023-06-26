@@ -1,0 +1,150 @@
+$op-bar-size: 3px;
+$op-corner-size: 8px;
+
+.marvin-widget {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    position: relative;
+    width: 240px;
+    height: 240px;
+    border: 0px solid rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0);
+    position: absolute;
+    overflow: hidden;
+    border-radius: 4px;
+    box-shadow: 2px 3px 15px 0px rgba(0, 0, 0, 0.2);
+
+    .widget-head {
+        padding: 4px 10px;
+        background-color: #fff;
+        flex-shrink: 0;
+        flex-grow: 0;
+        color: #333;
+        font-weight: bold;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        user-select: none;
+        font-size: 16px;
+        position: relative;
+        z-index: 3;
+        cursor: move;
+        .title {
+            flex-grow: 1;
+            flex-shrink: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .tools {
+            display: flex;
+            flex-direction: row;
+            .btn {
+                width: 12px;
+                height: 12px;
+                background-color: #ccc;
+                border-radius: 8px;
+                margin-left: 6px;
+                cursor: pointer;
+                &.minify {
+                    background-color: #0a0;
+                }
+                &.close {
+                    background-color: red;
+                }
+            }
+        }
+    }
+    .widget-body {
+        background-color: rgba(0, 0, 0, 0.2);
+        flex: 1;
+        position: relative;
+    }
+    .widget-status {
+        height: 12px;
+        overflow: hidden;
+        background-color: #fff;
+        flex-grow: 0;
+        flex-shrink: 0;
+    }
+    .widget-resize {
+        position: absolute;
+        z-index: 5;
+        background-color: rgba(0, 0, 0, 0.0);
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        user-select: none;
+        .bar {
+            position: absolute;
+            width: $op-bar-size;
+            height: $op-bar-size;
+            pointer-events: all;
+            z-index: 5;
+            user-select: none;
+            &.debug {
+                background-color: #000;
+            }
+            &.left {
+                left: 0;
+                top: 0;
+                height: 100%;
+                cursor: ew-resize;
+            }
+            &.right {
+                right: 0;
+                top: 0;
+                height: 100%;
+                cursor: ew-resize;
+            }
+            &.bottom {
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                cursor: ns-resize;
+            }
+            &.top {
+                top: 0;
+                left: 0;
+                width: 100%;
+                cursor: ns-resize;
+            }
+        }
+        .corner {
+            position: absolute;
+            width: $op-corner-size;
+            height: $op-corner-size;
+            pointer-events: all;
+            z-index: 10;
+            &.debug {
+                background-color: #000;
+            }
+
+            &.lt {
+                left: 0;
+                top: 0;
+                cursor: nwse-resize;
+            }
+            &.rt {
+                right: 0;
+                top: 0;
+                cursor: nesw-resize;
+            }
+            &.lb {
+                left: 0;
+                bottom: 0;
+                cursor: nesw-resize;
+            }
+            &.rb {
+                right: 0;
+                bottom: 0;
+                cursor: nwse-resize;
+            }
+        }
+    }
+}
