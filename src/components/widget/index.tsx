@@ -43,6 +43,7 @@ export default (props: {
     onMinify?: (min: boolean) => void;
     onResizing?: (size: TSize) => void;
     onResized?: (size: TSize) => void;
+    onChange?: (rect: TSize & TPosition) => void;
     checking?: (rect: TPosition & TSize) => boolean;
 }) => {
     const {
@@ -64,6 +65,7 @@ export default (props: {
         onSelected,
         onResizing,
         onResized,
+        onChange,
         checking
     } = props
 
@@ -248,6 +250,10 @@ export default (props: {
         [mL, mR, mT, mB, mLT, mRT, mLB, mRB].forEach(m => m.updateSize(size))
         move.snap(size)
     }, [size])
+
+    useEffect(() => {
+        typeof onChange === 'function' && onChange({ ...pos, ...size })
+    }, [pos, size])
 
     useEffect(() => {
         typeof onResizing === 'function' && onResizing({ ...runtimeSize })

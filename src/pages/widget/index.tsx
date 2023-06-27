@@ -44,8 +44,6 @@ export default () => {
     const [locked, setLocked] = useState(false)
     const grid = 100
 
-
-
     useEffect(() => {
         if (!dashboard) {
             return
@@ -70,6 +68,10 @@ export default () => {
             document.removeEventListener('mousedown', mousedown)
         }
     }, [dashboard])
+
+    useEffect(() => {
+        console.log(JSON.stringify(widgets))
+    }, [widgets])
 
     return <>
         <div className='widget-page-head'>
@@ -114,6 +116,12 @@ export default () => {
                                     && x + width <= window.innerWidth - 20
                                     && y + height <= window.innerHeight - 120
                                 )
+                            }}
+                            onChange={rect => {
+                                const w = [...widgets]
+                                const item = { ...w[i], position: { x: rect.x, y: rect.y }, size: { width: rect.width, height: rect.height } }
+                                w.splice(i, 1, item)
+                                setWidgets(w)
                             }}
                         >
                             <TestItem />
