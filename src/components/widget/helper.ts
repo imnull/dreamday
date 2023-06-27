@@ -108,8 +108,11 @@ export const createResizeHandler = (options: {
     sizeOffset: TStateParams<TPosition>;
     resizeType: TStateParams<TResizeType>;
     size: TStateParams<TSize>;
+    runtimeSize: TStateParams<TSize>;
+    runtimePosition: TStateParams<TPosition>;
     debug?: boolean;
     onSelected?: () => void;
+    useRuntime?: boolean;
 }) => {
     const {
         debug = false,
@@ -117,8 +120,12 @@ export const createResizeHandler = (options: {
         size: [size, setSize],
         resizeType: [resizeType, setResizeType],
         sizeOffset: [, setSizeOffset],
+        runtimeSize: [runtimeSize, setRuntimeSize],
+        runtimePosition: [runtimePosition, setRuntimePosition],
         onSelected,
+        useRuntime = false,
     } = options
+
 
     const _position = { ...position }
     const _size = { ...size }
@@ -131,12 +138,19 @@ export const createResizeHandler = (options: {
         },
         onMoving({ offset }) {
             setSizeOffset(offset)
+            if(useRuntime) {
+                const { x, y, width, height } = calRect(_size, _position, offset, resizeType)
+                setRuntimeSize({ width, height })
+                setRuntimePosition({ x, y })
+            }
         },
         onEnd: ({ offset }: any) => {
             setSizeOffset({ x: 0, y: 0 })
             const { x, y, width, height } = calRect(_size, _position, offset, resizeType)
             setPosition({ x, y })
             setSize({ width, height })
+            setRuntimeSize({ width, height })
+            setRuntimePosition({ x, y })
         }
     })
 

@@ -3,6 +3,28 @@ import './index.scss'
 
 import Widget from '~/components/widget'
 
+const TestItem = (props: { size?: { width: number; height: number } }) => {
+    const { size = { width: 0, height: 0 } } = props
+    const [count, setCount] = useState(0)
+    return <div style={{
+        ...size,
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        boxSizing: 'border-box',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        color: '#fff',
+        fontSize: 24,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center'
+    }}>
+        <div>{JSON.stringify(size)}</div>
+        <button onClick={() => setCount(count + 1)}>{count}</button>
+    </div>
+}
+
 export default () => {
 
     const handleCloseWidget = (data: any) => {
@@ -31,13 +53,17 @@ export default () => {
                     data={data}
                     onClose={handleCloseWidget}
                     onSelected={() => setSelected(i)}
+                    useRuntime={i%2 < 1}
                     onResize={size => console.log(`widget ${i} size:`, size)}
                 >
                     <h3 style={{ textAlign: 'center' }}>{data}</h3>
+                    <h3 style={{ textAlign: 'center' }}>{data}111111</h3>
+                    <TestItem />
+                    {/* {data} */}
                 </Widget>
             })
         }
-        {/* <Widget title='zIndex=10' zIndex={10} position={{ x: 10, y: 10 }} data={111} onClose={handleCloseWidget} onMoveEnd={e => console.log(e.position)} />
+        {/* <Widget title='zIndex=10' position={{ x: 10, y: 10 }} data={111} onClose={handleCloseWidget} onMoveEnd={e => console.log(e.position)} />
         <Widget title='中文试试' position={{ x: 20, y: 70 }} data={222} onClose={handleCloseWidget} onMoving={e => console.log(e.position)} />
         <Widget debug={false} position={{ x: 130, y: 130 }} data={333} onClose={handleCloseWidget} onMoveStart={e => console.log(e.position)} /> */}
     </>

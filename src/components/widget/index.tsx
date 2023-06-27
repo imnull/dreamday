@@ -1,20 +1,36 @@
-import { useCallback, useEffect, useRef, useState, useMemo } from 'react'
+import { useCallback, useEffect, isValidElement, useState, createElement } from 'react'
 import './index.scss'
 import { createMovable } from '~/libs/movable'
 import {
-    TPosition, TSize, TEventArgs, TResizeType,
-    genTranslate, genWidth, genHeight, calRect,
+    TPosition, TSize, TEventArgs,
+    genTranslate,
     createResizeHandler,
+    genWidth,
+    genHeight,
 } from './helper'
 
+const cloneChildren = (children: any, extProps: Record<string, any>, key: any = null): any => {
+    if(Array.isArray(children)) {
+        return children.map((children: any, key: number) => cloneChildren(children, extProps, key))
+    } else if(isValidElement(children)) {
+        const { props, type } = children
+        const { ...restProps } = props as any
+        const newChildren = createElement(type, { ...restProps, ...extProps, key })
+        return newChildren
+    } else {
+        return children
+    }
+}
+
 export default (props: {
-    children?: JSX.Element,
+    children?: any;
     data?: any;
     position?: TPosition;
-    size?: TSize,
-    debug?: boolean,
-    active?: boolean,
+    size?: TSize;
+    debug?: boolean;
+    active?: boolean;
     title?: string;
+    useRuntime?: boolean;
     onClose?: (args: TEventArgs) => void;
     onMoveStart?: (args: TEventArgs) => void;
     onMoveEnd?: (args: TEventArgs) => void;
@@ -31,6 +47,7 @@ export default (props: {
         data = null,
         debug = false,
         active = false,
+        useRuntime = false,
         onClose,
         onMoveStart,
         onMoveEnd,
@@ -60,7 +77,8 @@ export default (props: {
     }))
     useEffect(() => {
         if (target) {
-            setHeadHeight(target.getBoundingClientRect().height)
+            const { height } = target.getBoundingClientRect()
+            setHeadHeight(height >> 0)
             move.init(target)
             return () => {
                 move.dispose()
@@ -79,6 +97,10 @@ export default (props: {
     const [start, setStart] = useState(false)
     const [offset, setOffset] = useState({ x: 0, y: 0 })
     const [size, setSize] = useState(_size)
+
+    const [runtimeSize, setRuntimeSize] = useState(_size)
+    const [runtimePosition, setRuntimePosition] = useState(_position)
+
     const [sizeOffset, setSizeOffset] = useState({ x: 0, y: 0 })
     const [resizeType, setResizeType] = useState<'' | 'L' | 'T' | 'R' | 'B' | 'LT' | 'RT' | 'LB' | 'RB'>('')
 
@@ -142,7 +164,10 @@ export default (props: {
             position: [pos, setPos],
             sizeOffset: [sizeOffset, setSizeOffset],
             resizeType: ['L', setResizeType],
+            runtimeSize: [runtimeSize, setRuntimeSize],
+            runtimePosition: [runtimePosition, setRuntimePosition],
             onSelected,
+            useRuntime,
         })
     })
     useEffect(() => {
@@ -153,7 +178,7 @@ export default (props: {
             }
         }
     }, [barL])
-    
+
     const [barR, setBarR] = useState<HTMLElement | null>(null)
     const [mR] = useState(() => {
         return createResizeHandler({
@@ -162,7 +187,10 @@ export default (props: {
             position: [pos, setPos],
             sizeOffset: [sizeOffset, setSizeOffset],
             resizeType: ['R', setResizeType],
+            runtimeSize: [runtimeSize, setRuntimeSize],
+            runtimePosition: [runtimePosition, setRuntimePosition],
             onSelected,
+            useRuntime,
         })
     })
     useEffect(() => {
@@ -173,7 +201,7 @@ export default (props: {
             }
         }
     }, [barR])
-    
+
     const [barT, setBarT] = useState<HTMLElement | null>(null)
     const [mT] = useState(() => {
         return createResizeHandler({
@@ -182,7 +210,10 @@ export default (props: {
             position: [pos, setPos],
             sizeOffset: [sizeOffset, setSizeOffset],
             resizeType: ['T', setResizeType],
+            runtimeSize: [runtimeSize, setRuntimeSize],
+            runtimePosition: [runtimePosition, setRuntimePosition],
             onSelected,
+            useRuntime,
         })
     })
     useEffect(() => {
@@ -202,7 +233,10 @@ export default (props: {
             position: [pos, setPos],
             sizeOffset: [sizeOffset, setSizeOffset],
             resizeType: ['B', setResizeType],
+            runtimeSize: [runtimeSize, setRuntimeSize],
+            runtimePosition: [runtimePosition, setRuntimePosition],
             onSelected,
+            useRuntime,
         })
     })
     useEffect(() => {
@@ -222,7 +256,10 @@ export default (props: {
             position: [pos, setPos],
             sizeOffset: [sizeOffset, setSizeOffset],
             resizeType: ['LT', setResizeType],
+            runtimeSize: [runtimeSize, setRuntimeSize],
+            runtimePosition: [runtimePosition, setRuntimePosition],
             onSelected,
+            useRuntime,
         })
     })
     useEffect(() => {
@@ -242,7 +279,10 @@ export default (props: {
             position: [pos, setPos],
             sizeOffset: [sizeOffset, setSizeOffset],
             resizeType: ['RT', setResizeType],
+            runtimeSize: [runtimeSize, setRuntimeSize],
+            runtimePosition: [runtimePosition, setRuntimePosition],
             onSelected,
+            useRuntime,
         })
     })
     useEffect(() => {
@@ -262,7 +302,10 @@ export default (props: {
             position: [pos, setPos],
             sizeOffset: [sizeOffset, setSizeOffset],
             resizeType: ['LB', setResizeType],
+            runtimeSize: [runtimeSize, setRuntimeSize],
+            runtimePosition: [runtimePosition, setRuntimePosition],
             onSelected,
+            useRuntime,
         })
     })
     useEffect(() => {
@@ -282,7 +325,10 @@ export default (props: {
             position: [pos, setPos],
             sizeOffset: [sizeOffset, setSizeOffset],
             resizeType: ['RB', setResizeType],
+            runtimeSize: [runtimeSize, setRuntimeSize],
+            runtimePosition: [runtimePosition, setRuntimePosition],
             onSelected,
+            useRuntime,
         })
     })
     useEffect(() => {
@@ -306,13 +352,24 @@ export default (props: {
             mL, mR, mT, mB,
             mLT, mRT, mLB, mRB,
         ].forEach(m => m.updateSize(size))
-        typeof onResize === 'function' && onResize({ ...size })
     }, [size])
 
+    useEffect(() => {
+        typeof onResize === 'function' && onResize({ ...runtimeSize, height: runtimeSize.height - headHeight })
+    }, [runtimeSize, headHeight])
+
+    const [_children, setChildren] = useState<any>(null)
+    useEffect(() => {
+        const newChildren = cloneChildren(children, {
+            size: { ...runtimeSize, height: runtimeSize.height - headHeight },
+        })
+        setChildren(newChildren)
+    }, [children, runtimeSize, headHeight])
 
 
     return <div className={active ? "marvin-widget" : "marvin-widget background"} style={{
         transform: genTranslate(pos, offset, size, sizeOffset, resizeType),
+        // transform: `translateX(${runtimePosition.x}px) translateY(${runtimePosition.y}px)`,
         width: genWidth(size, sizeOffset, resizeType),
         height: min ? headHeight : genHeight(size, sizeOffset, resizeType),
     }} onMouseDown={e => {
@@ -326,7 +383,7 @@ export default (props: {
                 <div className='btn close' onClick={handleClose}></div>
             </div>
         </div>
-        <div className="widget-body">{children}</div>
+        <div className="widget-body">{_children}</div>
         {min ? null : <div className="widget-resize">
             <div className={debug ? "bar debug left" : "bar left"} ref={setBarL}></div>
             <div className={debug ? "bar debug right" : "bar right"} ref={setBarR}></div>
