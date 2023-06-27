@@ -1,141 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import './index.scss'
 import { createMovable } from '~/libs/movable'
-
-type TPosition = { x: number; y: number }
-type TSize = { width: number; height: number; }
-type TEventArgs = { position: TPosition; data: any }
-type TResizeType = '' | 'L' | 'T' | 'R' | 'B' | 'LT' | 'RT' | 'LB' | 'RB'
-
-const posPlus = (a: TPosition, b: TPosition) => {
-    return { x: a.x + b.x, y: a.y + b.y }
-}
-
-const genTranslate = (position: TPosition, offset: TPosition, size: TSize, sizeOffset: TPosition, resizeType: TResizeType) => {
-    let { x, y } = posPlus(position, offset)
-    let { width: w, height: h } = size
-
-    if (resizeType.includes('L')) {
-        w -= sizeOffset.x
-        if (w >= 0) {
-            x += sizeOffset.x
-        } else {
-            x += size.width
-        }
-    }
-    if (resizeType.includes('R')) {
-        w += sizeOffset.x
-        if (w < 0) {
-            x += w
-        }
-    }
-    if (resizeType.includes('T')) {
-        h -= sizeOffset.y
-        if (h >= 0) {
-            y += sizeOffset.y
-        } else {
-            y += size.height
-        }
-    }
-    if (resizeType.includes('B')) {
-        h += sizeOffset.y
-        if (h < 0) {
-            y += h
-        }
-    }
-    return `translateX(${x}px) translateY(${y}px)`
-}
-
-const genWidth = (size: TSize, sizeOffset: TPosition, resizeType: TResizeType) => {
-    if (resizeType.includes('L')) {
-        return Math.abs(size.width - sizeOffset.x)
-    } else if (resizeType.includes('R')) {
-        return Math.abs(size.width + sizeOffset.x)
-    } else {
-        return size.width
-    }
-}
-
-const genHeight = (size: TSize, sizeOffset: TPosition, resizeType: TResizeType) => {
-    if (resizeType.includes('T')) {
-        return Math.abs(size.height - sizeOffset.y)
-    } else if (resizeType.includes('B')) {
-        return Math.abs(size.height + sizeOffset.y)
-    } else {
-        return size.height
-    }
-}
-
-const calRect = (size: TSize, pos: TPosition, offset: TPosition, resizeType: TResizeType) => {
-    let x = pos.x
-    let y = pos.y
-    let width = size.width
-    let height = size.height
-
-    if (resizeType.includes('L')) {
-        width -= offset.x
-        if (width > 0) {
-            x += offset.x
-        } else {
-            x += size.width
-        }
-    }
-    if (resizeType.includes('R')) {
-        width += offset.x
-        if (width < 0) {
-            x += width
-        }
-    }
-    if (resizeType.includes('T')) {
-        height -= offset.y
-        if (height > 0) {
-            y += offset.y
-        } else {
-            y += size.height
-        }
-    }
-    if (resizeType.includes('B')) {
-        height += offset.y
-        if (height < 0) {
-            y += height
-        }
-    }
-    return { x, y, width: Math.abs(width), height: Math.abs(height) }
-}
-
-const createResizeHandler = (options: {
-    debug?: boolean;
-    target: HTMLElement;
-    resizeType: TResizeType;
-    size: TSize;
-    position: TPosition;
-    setResizeType: (type: TResizeType) => void;
-    setSizeOffset: (offset: TPosition) => void;
-    setPos: (pos: TPosition) => void;
-    setSize: (pos: TSize) => void;
-}) => {
-    const { target, resizeType, size, position, setResizeType, setSizeOffset, setPos, setSize, debug = false } = options
-    const m = createMovable({
-        debug,
-        onStart() {
-            setResizeType(resizeType)
-        },
-        onMoving({ offset }) {
-            setSizeOffset(offset)
-        },
-        onEnd: ({ offset }: any) => {
-            setSizeOffset({ x: 0, y: 0 })
-            const { x, y, width, height } = calRect(size, position, offset, resizeType)
-            setPos({ x, y })
-            setSize({ width, height })
-        }
-    })
-    m.init(target)
-
-    return () => {
-        m.dispose()
-    }
-}
+import {
+    TPosition, TSize, TEventArgs, TResizeType,
+    genTranslate, genWidth, genHeight, calRect,
+    createResizeHandler,
+} from './helper'
 
 export default (props: {
     children?: JSX.Element,
@@ -143,61 +13,62 @@ export default (props: {
     position?: TPosition;
     size?: TSize,
     debug?: boolean,
+    active?: boolean,
     title?: string;
-    zIndex?: number;
     onClose?: (args: TEventArgs) => void;
     onMoveStart?: (args: TEventArgs) => void;
     onMoveEnd?: (args: TEventArgs) => void;
     onMoving?: (args: TEventArgs) => void;
     onMinify?: (min: boolean) => void;
+    onSelected?: () => void;
 }) => {
     const {
         title = 'Untitled',
-        zIndex = 0,
         children,
         position: _position = { x: 0, y: 0 },
         size: _size = { width: 240, height: 240 },
         data = null,
         debug = false,
+        active = false,
         onClose,
         onMoveStart,
         onMoveEnd,
         onMoving,
         onMinify,
+        onSelected,
     } = props
 
     const [target, setTarget] = useState<HTMLElement | null>(null)
     const [pos, setPos] = useState(_position)
+    const [move] = useState(createMovable({
+        debug,
+        onStart() {
+            setResizeType('')
+            setStart(true)
+            typeof onSelected === 'function' && onSelected()
+        },
+        onMoving({ offset }) {
+            setOffset(offset)
+        },
+        onEnd({ position }) {
+            setStart(false)
+            setPos(position)
+            setOffset({ x: 0, y: 0 })
+        }
+    }))
     useEffect(() => {
         if (target) {
             setHeadHeight(target.getBoundingClientRect().height)
-            const m = createMovable({
-                debug,
-                onStart() {
-                    setResizeType('')
-                    setStart(true)
-                },
-                onMoving({ offset }) {
-                    setOffset(offset)
-                },
-                onEnd({ position }) {
-                    setStart(false)
-                    setPos(position)
-                    setOffset({ x: 0, y: 0 })
-                }
-            })
-            m.update({ ...pos })
-            m.init(target)
+            move.init(target)
             return () => {
-                m.dispose()
+                move.dispose()
             }
         }
-    }, [target, pos])
+    }, [target])
 
     useEffect(() => {
         setPos({ ..._position })
     }, [_position])
-
 
     const [tools, setTools] = useState<HTMLElement | null>(null)
     const [min, setMin] = useState(false)
@@ -238,6 +109,7 @@ export default (props: {
         }
         const mousedown = (e: MouseEvent) => {
             e.stopPropagation()
+            typeof onSelected === 'function' && onSelected()
         }
         tools.addEventListener('mousedown', mousedown)
         return () => {
@@ -254,171 +126,199 @@ export default (props: {
         setMin(!min)
     }
 
+    const handleMaxium = () => {
+
+    }
+
     /** 事件 END */
 
     const [barL, setBarL] = useState<HTMLElement | null>(null)
+    const [mL] = useState(() => {
+        return createResizeHandler({
+            debug,
+            size: [size, setSize],
+            position: [pos, setPos],
+            sizeOffset: [sizeOffset, setSizeOffset],
+            resizeType: ['L', setResizeType],
+            onSelected,
+        })
+    })
     useEffect(() => {
         if (barL) {
-            const dispose = createResizeHandler({
-                debug,
-                target: barL,
-                resizeType: 'L',
-                size,
-                position: pos,
-                setResizeType,
-                setSizeOffset,
-                setPos,
-                setSize
-            })
+            mL.init(barL)
             return () => {
-                dispose()
+                mL.dispose()
             }
         }
-    }, [barL, size, pos])
+    }, [barL])
+    
     const [barR, setBarR] = useState<HTMLElement | null>(null)
+    const [mR] = useState(() => {
+        return createResizeHandler({
+            debug,
+            size: [size, setSize],
+            position: [pos, setPos],
+            sizeOffset: [sizeOffset, setSizeOffset],
+            resizeType: ['R', setResizeType],
+            onSelected,
+        })
+    })
     useEffect(() => {
         if (barR) {
-            const dispose = createResizeHandler({
-                debug,
-                target: barR,
-                resizeType: 'R',
-                size,
-                position: pos,
-                setResizeType,
-                setSizeOffset,
-                setPos,
-                setSize
-            })
+            mR.init(barR)
             return () => {
-                dispose()
+                mR.dispose()
             }
         }
-    }, [barR, size, pos])
+    }, [barR])
+    
     const [barT, setBarT] = useState<HTMLElement | null>(null)
+    const [mT] = useState(() => {
+        return createResizeHandler({
+            debug,
+            size: [size, setSize],
+            position: [pos, setPos],
+            sizeOffset: [sizeOffset, setSizeOffset],
+            resizeType: ['T', setResizeType],
+            onSelected,
+        })
+    })
     useEffect(() => {
         if (barT) {
-            const dispose = createResizeHandler({
-                debug,
-                target: barT,
-                resizeType: 'T',
-                size,
-                position: pos,
-                setResizeType,
-                setSizeOffset,
-                setPos,
-                setSize
-            })
+            mT.init(barT)
             return () => {
-                dispose()
+                mT.dispose()
             }
         }
-    }, [barT, size, pos])
+    }, [barT])
+
     const [barB, setBarB] = useState<HTMLElement | null>(null)
+    const [mB] = useState(() => {
+        return createResizeHandler({
+            debug,
+            size: [size, setSize],
+            position: [pos, setPos],
+            sizeOffset: [sizeOffset, setSizeOffset],
+            resizeType: ['B', setResizeType],
+            onSelected,
+        })
+    })
     useEffect(() => {
         if (barB) {
-            const dispose = createResizeHandler({
-                debug,
-                target: barB,
-                resizeType: 'B',
-                size,
-                position: pos,
-                setResizeType,
-                setSizeOffset,
-                setPos,
-                setSize
-            })
+            mB.init(barB)
             return () => {
-                dispose()
+                mB.dispose()
             }
         }
-    }, [barB, size, pos])
+    }, [barB])
 
     const [cornerLT, setCornerLT] = useState<HTMLElement | null>(null)
+    const [mLT] = useState(() => {
+        return createResizeHandler({
+            debug,
+            size: [size, setSize],
+            position: [pos, setPos],
+            sizeOffset: [sizeOffset, setSizeOffset],
+            resizeType: ['LT', setResizeType],
+            onSelected,
+        })
+    })
     useEffect(() => {
         if (cornerLT) {
-            const dispose = createResizeHandler({
-                debug,
-                target: cornerLT,
-                resizeType: 'LT',
-                size,
-                position: pos,
-                setResizeType,
-                setSizeOffset,
-                setPos,
-                setSize
-            })
+            mLT.init(cornerLT)
             return () => {
-                dispose()
+                mLT.dispose()
             }
         }
-    }, [cornerLT, size, pos])
+    }, [cornerLT])
+
     const [cornerRT, setCornerRT] = useState<HTMLElement | null>(null)
+    const [mRT] = useState(() => {
+        return createResizeHandler({
+            debug,
+            size: [size, setSize],
+            position: [pos, setPos],
+            sizeOffset: [sizeOffset, setSizeOffset],
+            resizeType: ['RT', setResizeType],
+            onSelected,
+        })
+    })
     useEffect(() => {
         if (cornerRT) {
-            const dispose = createResizeHandler({
-                debug,
-                target: cornerRT,
-                resizeType: 'RT',
-                size,
-                position: pos,
-                setResizeType,
-                setSizeOffset,
-                setPos,
-                setSize
-            })
+            mRT.init(cornerRT)
             return () => {
-                dispose()
+                mRT.dispose()
             }
         }
-    }, [cornerRT, size, pos])
+    }, [cornerRT])
+
     const [cornerLB, setCornerLB] = useState<HTMLElement | null>(null)
+    const [mLB] = useState(() => {
+        return createResizeHandler({
+            debug,
+            size: [size, setSize],
+            position: [pos, setPos],
+            sizeOffset: [sizeOffset, setSizeOffset],
+            resizeType: ['LB', setResizeType],
+            onSelected,
+        })
+    })
     useEffect(() => {
         if (cornerLB) {
-            const dispose = createResizeHandler({
-                debug,
-                target: cornerLB,
-                resizeType: 'LB',
-                size,
-                position: pos,
-                setResizeType,
-                setSizeOffset,
-                setPos,
-                setSize
-            })
+            mLB.init(cornerLB)
             return () => {
-                dispose()
+                mLB.dispose()
             }
         }
-    }, [cornerLB, size, pos])
+    }, [cornerLB])
+
     const [cornerRB, setCornerRB] = useState<HTMLElement | null>(null)
+    const [mRB] = useState(() => {
+        return createResizeHandler({
+            debug,
+            size: [size, setSize],
+            position: [pos, setPos],
+            sizeOffset: [sizeOffset, setSizeOffset],
+            resizeType: ['RB', setResizeType],
+            onSelected,
+        })
+    })
     useEffect(() => {
         if (cornerRB) {
-            const dispose = createResizeHandler({
-                debug,
-                target: cornerRB,
-                resizeType: 'RB',
-                size,
-                position: pos,
-                setResizeType,
-                setSizeOffset,
-                setPos,
-                setSize
-            })
+            mRB.init(cornerRB)
             return () => {
-                dispose()
+                mRB.dispose()
             }
         }
-    }, [cornerRB, size, pos])
+    }, [cornerRB])
 
-    return <div className="marvin-widget" style={{
-        zIndex,
+    useEffect(() => {
+        [
+            mL, mR, mT, mB,
+            mLT, mRT, mLB, mRB,
+        ].forEach(m => m.updatePosition(pos))
+        move.update(pos)
+    }, [pos])
+    useEffect(() => {
+        [
+            mL, mR, mT, mB,
+            mLT, mRT, mLB, mRB,
+        ].forEach(m => m.updateSize(size))
+    }, [size])
+
+
+
+    return <div className={active ? "marvin-widget" : "marvin-widget background"} style={{
         transform: genTranslate(pos, offset, size, sizeOffset, resizeType),
         width: genWidth(size, sizeOffset, resizeType),
         height: min ? headHeight : genHeight(size, sizeOffset, resizeType),
+    }} onMouseDown={e => {
+        typeof onSelected === 'function' && onSelected()
     }}>
         <div className="widget-head" ref={setTarget}>
             <div className='title'>{title}</div>
             <div className='tools' ref={setTools}>
+                <div className='btn maxium' onClick={handleMaxium}></div>
                 <div className='btn minify' onClick={handleMin}></div>
                 <div className='btn close' onClick={handleClose}></div>
             </div>

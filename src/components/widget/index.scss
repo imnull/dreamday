@@ -1,5 +1,6 @@
 $op-bar-size: 3px;
 $op-corner-size: 8px;
+$widget-border-radius: 8px;
 
 .marvin-widget {
     display: flex;
@@ -10,11 +11,31 @@ $op-corner-size: 8px;
     width: 240px;
     height: 240px;
     border: 0px solid rgba(0, 0, 0, 0.1);
-    background-color: rgba(0, 0, 0, 0);
+    // background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(230, 230, 230, 0.5);
+    backdrop-filter: blur(4px);
     position: absolute;
     overflow: hidden;
-    border-radius: 4px;
-    box-shadow: 2px 3px 15px 0px rgba(0, 0, 0, 0.2);
+    border-radius: $widget-border-radius;
+    box-shadow: 2px 3px $widget-border-radius 0px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+
+    &.background {
+        z-index: 5;
+        box-shadow: 1px 2px 10px 0px rgba(0, 0, 0, 0.1);
+        .widget-head {
+            color: #666;
+            .tools {
+                .btn {
+                    &.minify,
+                    &.maxium,
+                    &.close {
+                        background-color: #d3d5d7;
+                    }
+                }
+            }
+        }
+    }
 
     .widget-head {
         padding: 4px 10px;
@@ -42,24 +63,27 @@ $op-corner-size: 8px;
         .tools {
             display: flex;
             flex-direction: row;
+            cursor: pointer;
             .btn {
                 width: 12px;
                 height: 12px;
-                background-color: #ccc;
+                background-color: #d3d5d7;
                 border-radius: 8px;
                 margin-left: 6px;
-                cursor: pointer;
                 &.minify {
-                    background-color: #0a0;
+                    background-color: #fdb43f;
+                }
+                &.maxium {
+                    background-color: #2cc046;
                 }
                 &.close {
-                    background-color: red;
+                    background-color: #fd5551;
                 }
             }
         }
     }
     .widget-body {
-        background-color: rgba(0, 0, 0, 0.2);
+        background-color: rgba(0, 0, 0, 0.0);
         flex: 1;
         position: relative;
     }
@@ -73,7 +97,7 @@ $op-corner-size: 8px;
     .widget-resize {
         position: absolute;
         z-index: 5;
-        background-color: rgba(0, 0, 0, 0.0);
+        background-color: rgba(0, 0, 0, 0);
         left: 0;
         top: 0;
         right: 0;
