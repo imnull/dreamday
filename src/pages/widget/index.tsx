@@ -31,6 +31,7 @@ export default () => {
                     data={data}
                     onClose={handleCloseWidget}
                     onSelected={() => setSelected(i)}
+                    onResize={size => console.log(`widget ${i} size:`, size)}
                 >
                     <h3 style={{ textAlign: 'center' }}>{data}</h3>
                 </Widget>

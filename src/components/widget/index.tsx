@@ -21,6 +21,7 @@ export default (props: {
     onMoving?: (args: TEventArgs) => void;
     onMinify?: (min: boolean) => void;
     onSelected?: () => void;
+    onResize?: (size: TSize) => void;
 }) => {
     const {
         title = 'Untitled',
@@ -36,6 +37,7 @@ export default (props: {
         onMoving,
         onMinify,
         onSelected,
+        onResize,
     } = props
 
     const [target, setTarget] = useState<HTMLElement | null>(null)
@@ -304,6 +306,7 @@ export default (props: {
             mL, mR, mT, mB,
             mLT, mRT, mLB, mRB,
         ].forEach(m => m.updateSize(size))
+        typeof onResize === 'function' && onResize({ ...size })
     }, [size])
 
 
