@@ -1,7 +1,9 @@
 
-export const createMovable = (props: TProps = {}) => {
+export const createMovable = <T = any>(props: TProps = {}) => {
 
-    const { onStart, onMoving, onEnd, debug = false } = props
+    const { onStart, onMoving, onEnd, debug = false, grid: _grid = 1, snap = null } = props
+
+    const grid = Math.max(1, _grid >> 0)
 
     const state = {
         element: null as HTMLElement | null,
@@ -9,7 +11,7 @@ export const createMovable = (props: TProps = {}) => {
         start: { x: 0, y: 0 },
         offset: { x: 0, y: 0 },
         position: { x: 0, y: 0 },
-        snap: null as any,
+        snap,
     }
 
     const mousedown = (e: MouseEvent) => {
@@ -41,14 +43,17 @@ export const createMovable = (props: TProps = {}) => {
         state.status = 0
         const { x, y } = state.offset
         const position = { x: state.position.x + x, y: state.position.y + y }
+        position.x = Math.round(position.x / grid) * grid
+        position.y = Math.round(position.y / grid) * grid
+        // state.position = { ...position }
         typeof onEnd === 'function' && onEnd({ position, offset: { x, y } })
     }
 
     const R = {
-        snap<T = any>(s: T) {
+        snap(s: T) {
             state.snap = s
         },
-        getSnap<T = any>() {
+        getSnap() {
             return state.snap as T
         },
         update(position: TPosition) {
@@ -74,8 +79,10 @@ export const createMovable = (props: TProps = {}) => {
 }
 
 
-type TProps = {
+type TProps<T = any> = {
     debug?: boolean;
+    grid?: number;
+    snap?: T;
     onStart?: () => void;
     onMoving?: (args: { position: TPosition; offset: TPosition; }) => void;
     onEnd?: (args: { position: TPosition; offset: TPosition; }) => void;

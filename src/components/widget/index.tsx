@@ -7,12 +7,14 @@ import {
     createResizeHandler,
     genWidth,
     genHeight,
+    TResizeType,
+    gridValue,
 } from './helper'
 
 const cloneChildren = (children: any, extProps: Record<string, any>, key: any = null): any => {
-    if(Array.isArray(children)) {
+    if (Array.isArray(children)) {
         return children.map((children: any, key: number) => cloneChildren(children, extProps, key))
-    } else if(isValidElement(children)) {
+    } else if (isValidElement(children)) {
         const { props, type } = children
         const { ...restProps } = props as any
         const newChildren = createElement(type, { ...restProps, ...extProps, key })
@@ -31,13 +33,17 @@ export default (props: {
     active?: boolean;
     title?: string;
     useRuntime?: boolean;
+    grid?: number;
+    locked?: boolean;
+    onSelected?: () => void;
     onClose?: (args: TEventArgs) => void;
     onMoveStart?: (args: TEventArgs) => void;
     onMoveEnd?: (args: TEventArgs) => void;
     onMoving?: (args: TEventArgs) => void;
     onMinify?: (min: boolean) => void;
-    onSelected?: () => void;
-    onResize?: (size: TSize) => void;
+    onResizing?: (size: TSize) => void;
+    onResized?: (size: TSize) => void;
+    checking?: (rect: TPosition & TSize) => boolean;
 }) => {
     const {
         title = 'Untitled',
@@ -48,31 +54,54 @@ export default (props: {
         debug = false,
         active = false,
         useRuntime = false,
+        grid = 1,
+        locked = false,
         onClose,
         onMoveStart,
         onMoveEnd,
         onMoving,
         onMinify,
         onSelected,
-        onResize,
+        onResizing,
+        onResized,
+        checking
     } = props
 
+    const [start, setStart] = useState(false)
+    const [offset, setOffset] = useState({ x: 0, y: 0 })
+    const [min, setMin] = useState(false)
+    const [headHeight, setHeadHeight] = useState(0)
+
     const [target, setTarget] = useState<HTMLElement | null>(null)
-    const [pos, setPos] = useState(_position)
-    const [move] = useState(createMovable({
+    const [tools, setTools] = useState<HTMLElement | null>(null)
+
+    const [pos, setPos] = useState({ x: gridValue(grid, _position.x), y: gridValue(grid, _position.y) })
+    const [runtimePosition, setRuntimePosition] = useState({ x: gridValue(grid, _position.x), y: gridValue(grid, _position.y) })
+
+    const [size, setSize] = useState({ width: gridValue(grid, _size.width), height: gridValue(grid, _size.height) })
+    const [runtimeSize, setRuntimeSize] = useState({ width: gridValue(grid, _size.width), height: gridValue(grid, _size.height) })
+    const [sizeOffset, setSizeOffset] = useState({ x: 0, y: 0 })
+    const [resizeType, setResizeType] = useState<TResizeType>('')
+
+    const [move] = useState(createMovable<TSize>({
         debug,
+        grid,
+        snap: size,
         onStart() {
             setResizeType('')
             setStart(true)
-            typeof onSelected === 'function' && onSelected()
+            _onSelected()
         },
         onMoving({ offset }) {
             setOffset(offset)
         },
         onEnd({ position }) {
             setStart(false)
-            setPos(position)
+            setEditing(false)
             setOffset({ x: 0, y: 0 })
+            if (typeof checking !== 'function' || checking({ ...position, ...move.getSnap() })) {
+                setPos(position)
+            }
         }
     }))
     useEffect(() => {
@@ -85,24 +114,6 @@ export default (props: {
             }
         }
     }, [target])
-
-    useEffect(() => {
-        setPos({ ..._position })
-    }, [_position])
-
-    const [tools, setTools] = useState<HTMLElement | null>(null)
-    const [min, setMin] = useState(false)
-    const [headHeight, setHeadHeight] = useState(0)
-
-    const [start, setStart] = useState(false)
-    const [offset, setOffset] = useState({ x: 0, y: 0 })
-    const [size, setSize] = useState(_size)
-
-    const [runtimeSize, setRuntimeSize] = useState(_size)
-    const [runtimePosition, setRuntimePosition] = useState(_position)
-
-    const [sizeOffset, setSizeOffset] = useState({ x: 0, y: 0 })
-    const [resizeType, setResizeType] = useState<'' | 'L' | 'T' | 'R' | 'B' | 'LT' | 'RT' | 'LB' | 'RB'>('')
 
     /** 事件 */
 
@@ -133,11 +144,17 @@ export default (props: {
         }
         const mousedown = (e: MouseEvent) => {
             e.stopPropagation()
-            typeof onSelected === 'function' && onSelected()
+            _onSelected()
+        }
+        const mouseup = (e: MouseEvent) => {
+            e.stopPropagation()
+            setEditing(false)
         }
         tools.addEventListener('mousedown', mousedown)
+        tools.addEventListener('mouseup', mouseup)
         return () => {
             tools.removeEventListener('mousedown', mousedown)
+            tools.removeEventListener('mouseup', mouseup)
         }
     }, [tools])
 
@@ -156,235 +173,120 @@ export default (props: {
 
     /** 事件 END */
 
-    const [barL, setBarL] = useState<HTMLElement | null>(null)
-    const [mL] = useState(() => {
-        return createResizeHandler({
+    const [editing, setEditing] = useState(false)
+    const _onSelected = () => {
+        setEditing(true)
+        typeof onSelected === 'function' && onSelected()
+    }
+
+    const createResizeParams = (resizeType: TResizeType) => {
+        return {
             debug,
+            grid,
+            checking,
+            editing: [editing, setEditing],
             size: [size, setSize],
             position: [pos, setPos],
             sizeOffset: [sizeOffset, setSizeOffset],
-            resizeType: ['L', setResizeType],
+            resizeType: [resizeType, setResizeType],
             runtimeSize: [runtimeSize, setRuntimeSize],
             runtimePosition: [runtimePosition, setRuntimePosition],
-            onSelected,
+            onSelected: _onSelected,
             useRuntime,
-        })
-    })
-    useEffect(() => {
-        if (barL) {
-            mL.init(barL)
-            return () => {
-                mL.dispose()
+            onResized,
+        }
+    }
+
+    const createResizeEffect = (element: HTMLElement | null, m: ReturnType<typeof createResizeHandler>) => {
+        return () => {
+            if (element) {
+                m.init(element)
+                return () => {
+                    m.dispose()
+                }
             }
         }
-    }, [barL])
+    }
+
+    const [barL, setBarL] = useState<HTMLElement | null>(null)
+    const [mL] = useState(createResizeHandler(createResizeParams('L') as any))
+    useEffect(createResizeEffect(barL, mL), [barL])
 
     const [barR, setBarR] = useState<HTMLElement | null>(null)
-    const [mR] = useState(() => {
-        return createResizeHandler({
-            debug,
-            size: [size, setSize],
-            position: [pos, setPos],
-            sizeOffset: [sizeOffset, setSizeOffset],
-            resizeType: ['R', setResizeType],
-            runtimeSize: [runtimeSize, setRuntimeSize],
-            runtimePosition: [runtimePosition, setRuntimePosition],
-            onSelected,
-            useRuntime,
-        })
-    })
-    useEffect(() => {
-        if (barR) {
-            mR.init(barR)
-            return () => {
-                mR.dispose()
-            }
-        }
-    }, [barR])
+    const [mR] = useState(createResizeHandler(createResizeParams('R') as any))
+    useEffect(createResizeEffect(barR, mR), [barR])
 
     const [barT, setBarT] = useState<HTMLElement | null>(null)
-    const [mT] = useState(() => {
-        return createResizeHandler({
-            debug,
-            size: [size, setSize],
-            position: [pos, setPos],
-            sizeOffset: [sizeOffset, setSizeOffset],
-            resizeType: ['T', setResizeType],
-            runtimeSize: [runtimeSize, setRuntimeSize],
-            runtimePosition: [runtimePosition, setRuntimePosition],
-            onSelected,
-            useRuntime,
-        })
-    })
-    useEffect(() => {
-        if (barT) {
-            mT.init(barT)
-            return () => {
-                mT.dispose()
-            }
-        }
-    }, [barT])
+    const [mT] = useState(createResizeHandler(createResizeParams('T') as any))
+    useEffect(createResizeEffect(barT, mT), [barT])
 
     const [barB, setBarB] = useState<HTMLElement | null>(null)
-    const [mB] = useState(() => {
-        return createResizeHandler({
-            debug,
-            size: [size, setSize],
-            position: [pos, setPos],
-            sizeOffset: [sizeOffset, setSizeOffset],
-            resizeType: ['B', setResizeType],
-            runtimeSize: [runtimeSize, setRuntimeSize],
-            runtimePosition: [runtimePosition, setRuntimePosition],
-            onSelected,
-            useRuntime,
-        })
-    })
-    useEffect(() => {
-        if (barB) {
-            mB.init(barB)
-            return () => {
-                mB.dispose()
-            }
-        }
-    }, [barB])
+    const [mB] = useState(createResizeHandler(createResizeParams('B') as any))
+    useEffect(createResizeEffect(barB, mB), [barB])
 
     const [cornerLT, setCornerLT] = useState<HTMLElement | null>(null)
-    const [mLT] = useState(() => {
-        return createResizeHandler({
-            debug,
-            size: [size, setSize],
-            position: [pos, setPos],
-            sizeOffset: [sizeOffset, setSizeOffset],
-            resizeType: ['LT', setResizeType],
-            runtimeSize: [runtimeSize, setRuntimeSize],
-            runtimePosition: [runtimePosition, setRuntimePosition],
-            onSelected,
-            useRuntime,
-        })
-    })
-    useEffect(() => {
-        if (cornerLT) {
-            mLT.init(cornerLT)
-            return () => {
-                mLT.dispose()
-            }
-        }
-    }, [cornerLT])
+    const [mLT] = useState(createResizeHandler(createResizeParams('LT') as any))
+    useEffect(createResizeEffect(cornerLT, mLT), [cornerLT])
 
     const [cornerRT, setCornerRT] = useState<HTMLElement | null>(null)
-    const [mRT] = useState(() => {
-        return createResizeHandler({
-            debug,
-            size: [size, setSize],
-            position: [pos, setPos],
-            sizeOffset: [sizeOffset, setSizeOffset],
-            resizeType: ['RT', setResizeType],
-            runtimeSize: [runtimeSize, setRuntimeSize],
-            runtimePosition: [runtimePosition, setRuntimePosition],
-            onSelected,
-            useRuntime,
-        })
-    })
-    useEffect(() => {
-        if (cornerRT) {
-            mRT.init(cornerRT)
-            return () => {
-                mRT.dispose()
-            }
-        }
-    }, [cornerRT])
+    const [mRT] = useState(createResizeHandler(createResizeParams('RT') as any))
+    useEffect(createResizeEffect(cornerRT, mRT), [cornerRT])
 
     const [cornerLB, setCornerLB] = useState<HTMLElement | null>(null)
-    const [mLB] = useState(() => {
-        return createResizeHandler({
-            debug,
-            size: [size, setSize],
-            position: [pos, setPos],
-            sizeOffset: [sizeOffset, setSizeOffset],
-            resizeType: ['LB', setResizeType],
-            runtimeSize: [runtimeSize, setRuntimeSize],
-            runtimePosition: [runtimePosition, setRuntimePosition],
-            onSelected,
-            useRuntime,
-        })
-    })
-    useEffect(() => {
-        if (cornerLB) {
-            mLB.init(cornerLB)
-            return () => {
-                mLB.dispose()
-            }
-        }
-    }, [cornerLB])
+    const [mLB] = useState(createResizeHandler(createResizeParams('LB') as any))
+    useEffect(createResizeEffect(cornerLB, mLB), [cornerLB])
 
     const [cornerRB, setCornerRB] = useState<HTMLElement | null>(null)
-    const [mRB] = useState(() => {
-        return createResizeHandler({
-            debug,
-            size: [size, setSize],
-            position: [pos, setPos],
-            sizeOffset: [sizeOffset, setSizeOffset],
-            resizeType: ['RB', setResizeType],
-            runtimeSize: [runtimeSize, setRuntimeSize],
-            runtimePosition: [runtimePosition, setRuntimePosition],
-            onSelected,
-            useRuntime,
-        })
-    })
-    useEffect(() => {
-        if (cornerRB) {
-            mRB.init(cornerRB)
-            return () => {
-                mRB.dispose()
-            }
-        }
-    }, [cornerRB])
+    const [mRB] = useState(createResizeHandler(createResizeParams('RB') as any))
+    useEffect(createResizeEffect(cornerRB, mRB), [cornerRB])
 
     useEffect(() => {
-        [
-            mL, mR, mT, mB,
-            mLT, mRT, mLB, mRB,
-        ].forEach(m => m.updatePosition(pos))
+        [mL, mR, mT, mB, mLT, mRT, mLB, mRB].forEach(m => m.updatePosition(pos))
         move.update(pos)
     }, [pos])
     useEffect(() => {
-        [
-            mL, mR, mT, mB,
-            mLT, mRT, mLB, mRB,
-        ].forEach(m => m.updateSize(size))
+        [mL, mR, mT, mB, mLT, mRT, mLB, mRB].forEach(m => m.updateSize(size))
+        move.snap(size)
     }, [size])
 
     useEffect(() => {
-        typeof onResize === 'function' && onResize({ ...runtimeSize, height: runtimeSize.height - headHeight })
+        typeof onResizing === 'function' && onResizing({ ...runtimeSize })
     }, [runtimeSize, headHeight])
 
     const [_children, setChildren] = useState<any>(null)
     useEffect(() => {
         const newChildren = cloneChildren(children, {
-            size: { ...runtimeSize, height: runtimeSize.height - headHeight },
+            size: { ...runtimeSize },
         })
         setChildren(newChildren)
     }, [children, runtimeSize, headHeight])
 
+    const [showTitle, setShowTitle] = useState(false)
 
-    return <div className={active ? "marvin-widget" : "marvin-widget background"} style={{
+    return <div className={active && !locked ? "marvin-widget" : "marvin-widget background"} style={{
         transform: genTranslate(pos, offset, size, sizeOffset, resizeType),
-        // transform: `translateX(${runtimePosition.x}px) translateY(${runtimePosition.y}px)`,
         width: genWidth(size, sizeOffset, resizeType),
         height: min ? headHeight : genHeight(size, sizeOffset, resizeType),
+        transition: editing || locked ? '' : 'all 0.2s',
     }} onMouseDown={e => {
-        typeof onSelected === 'function' && onSelected()
+        _onSelected()
+    }} onMouseUp={() => {
+        setEditing(false)
+    }} onMouseEnter={() => {
+        setShowTitle(true)
+    }} onMouseLeave={() => {
+        setShowTitle(false)
     }}>
-        <div className="widget-head" ref={setTarget}>
+        {locked ? null : <div className="widget-head" ref={setTarget} style={{ transform: showTitle || editing ? `translateY(0%)` : `translateY(-100%)` }}>
             <div className='title'>{title}</div>
             <div className='tools' ref={setTools}>
                 <div className='btn maxium' onClick={handleMaxium}></div>
                 <div className='btn minify' onClick={handleMin}></div>
                 <div className='btn close' onClick={handleClose}></div>
             </div>
-        </div>
+        </div>}
         <div className="widget-body">{_children}</div>
-        {min ? null : <div className="widget-resize">
+        {min || locked ? null : <div className={(locked ? "widget-resize" : "widget-resize editing") + (active ? ' active' : '')}>
             <div className={debug ? "bar debug left" : "bar left"} ref={setBarL}></div>
             <div className={debug ? "bar debug right" : "bar right"} ref={setBarR}></div>
             <div className={debug ? "bar debug top" : "bar top"} ref={setBarT}></div>
@@ -393,6 +295,7 @@ export default (props: {
             <div className={debug ? "corner debug rt" : "corner rt"} ref={setCornerRT}></div>
             <div className={debug ? "corner debug lb" : "corner lb"} ref={setCornerLB}></div>
             <div className={debug ? "corner debug rb" : "corner rb"} ref={setCornerRB}></div>
-        </div>}
+        </div>
+        }
     </div >
 }

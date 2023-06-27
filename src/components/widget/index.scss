@@ -1,6 +1,8 @@
-$op-bar-size: 3px;
-$op-corner-size: 8px;
-$widget-border-radius: 8px;
+$op-bar-size: 6px;
+$op-corner-size: 12px;
+$widget-border-radius: 0px;
+$widget-shadow-radius: 15px;
+$transition-duration: 0.2s;
 
 .marvin-widget {
     display: flex;
@@ -11,18 +13,19 @@ $widget-border-radius: 8px;
     width: 240px;
     height: 240px;
     border: 0px solid rgba(0, 0, 0, 0.1);
-    // background-color: rgba(255, 255, 255, 0.5);
     background-color: rgba(230, 230, 230, 0.5);
     backdrop-filter: blur(4px);
     position: absolute;
     overflow: hidden;
     border-radius: $widget-border-radius;
-    box-shadow: 2px 3px $widget-border-radius 0px rgba(0, 0, 0, 0.2);
+    box-shadow: 2px 3px $widget-shadow-radius 0px rgba(0, 0, 0, 0.2);
     z-index: 10;
+    transition: box-shadow $transition-duration;
 
     &.background {
         z-index: 5;
-        box-shadow: 1px 2px 10px 0px rgba(0, 0, 0, 0.1);
+        // box-shadow: 1px 2px 10px 0px rgba(0, 0, 0, 0.1);
+        box-shadow: none;
         .widget-head {
             color: #666;
             .tools {
@@ -38,7 +41,8 @@ $widget-border-radius: 8px;
     }
 
     .widget-head {
-        padding: 4px 10px;
+        transition: transform $transition-duration;
+        padding: 6px 12px 4px 12px;
         background-color: #fff;
         flex-shrink: 0;
         flex-grow: 0;
@@ -85,7 +89,11 @@ $widget-border-radius: 8px;
     .widget-body {
         background-color: rgba(0, 0, 0, 0.0);
         flex: 1;
-        position: relative;
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
     }
     .widget-status {
         height: 12px;
@@ -112,7 +120,7 @@ $widget-border-radius: 8px;
             z-index: 5;
             user-select: none;
             &.debug {
-                background-color: #000;
+                background-color: rgba(0,0,0,0.2);
             }
             &.left {
                 left: 0;
@@ -169,6 +177,28 @@ $widget-border-radius: 8px;
                 bottom: 0;
                 cursor: nwse-resize;
             }
+        }
+
+        &.editing::before {
+            opacity: 1;
+        }
+
+        &.active::before {
+            border-color: yellow;
+        }
+
+        &::before {
+            content: ' ';
+            transition: opacity $transition-duration;
+            opacity: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            border: 2px solid #fff;
+            border-radius: $widget-border-radius;
         }
     }
 }

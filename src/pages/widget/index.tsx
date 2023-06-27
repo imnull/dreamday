@@ -33,39 +33,94 @@ export default () => {
 
     const [widgets, setWidgets] = useState([
         { title: 'Window1', position: { x: 10, y: 10 }, size: { width: 400, height: 200 }, data: 123, },
-        { title: 'Window2', position: { x: 160, y: 260 }, size: { width: 300, height: 100 }, data: 234, },
-        { title: 'Window3', position: { x: 560, y: 110 }, size: { width: 200, height: 300 }, data: 345, },
+        { title: 'Window2', position: { x: 160, y: 260 }, size: { width: 300, height: 300 }, data: 234, },
+        { title: 'Window3', position: { x: 560, y: 110 }, size: { width: 300, height: 300 }, data: 345, },
     ])
 
+    const [dashboard, setDashboard] = useState<HTMLElement | null>(null)
+
     const [selected, setSelected] = useState(widgets.length - 1)
+    const [debug, setDebug] = useState(false)
+    const [locked, setLocked] = useState(false)
+    const grid = 100
+
+
+
+    useEffect(() => {
+        if (!dashboard) {
+            return
+        }
+        const mousedown = (e: MouseEvent) => {
+            const target = e.target as HTMLElement
+            if (target === dashboard) {
+                setSelected(-1)
+                return
+            }
+            let p = target.parentElement
+            while (p) {
+                if (p === dashboard) {
+                    return
+                }
+                p = p.parentElement
+            }
+            setSelected(-1)
+        }
+        document.addEventListener('mousedown', mousedown)
+        return () => {
+            document.removeEventListener('mousedown', mousedown)
+        }
+    }, [dashboard])
 
     return <>
-        <h1>Widget</h1>
-        {
-            widgets.map(({ title, position, size, data }, i) => {
-                return <Widget
-                    key={i}
-                    debug={false}
-                    active={i === selected}
-                    title={title}
-                    position={position}
-                    size={size}
-                    data={data}
-                    onClose={handleCloseWidget}
-                    onSelected={() => setSelected(i)}
-                    useRuntime={i%2 < 1}
-                    onResize={size => console.log(`widget ${i} size:`, size)}
-                >
-                    <h3 style={{ textAlign: 'center' }}>{data}</h3>
-                    <h3 style={{ textAlign: 'center' }}>{data}111111</h3>
-                    <TestItem />
-                    {/* <TestItem /> */}
-                    {/* {data} */}
-                </Widget>
-            })
-        }
-        {/* <Widget title='zIndex=10' position={{ x: 10, y: 10 }} data={111} onClose={handleCloseWidget} onMoveEnd={e => console.log(e.position)} />
-        <Widget title='中文试试' position={{ x: 20, y: 70 }} data={222} onClose={handleCloseWidget} onMoving={e => console.log(e.position)} />
-        <Widget debug={false} position={{ x: 130, y: 130 }} data={333} onClose={handleCloseWidget} onMoveStart={e => console.log(e.position)} /> */}
+        <div className='widget-page-head'>
+            <h1>Widget</h1>
+            <label className='checkbox'>
+                <input type="checkbox" disabled={locked} checked={debug} onChange={(e) => {
+                    setDebug(!debug)
+                }} />
+                <span>debug</span>
+            </label>
+            <label className='checkbox'>
+                <input type="checkbox" checked={locked} onChange={(e) => {
+                    setLocked(!locked)
+                    setDebug(false)
+                }} />
+                <span>lock</span>
+            </label>
+        </div>
+        <div className='widget-page-dashboard-bg'>
+            <div className='widget-page-dashboard' ref={setDashboard}>
+                {
+                    widgets.map(({ title, position, size, data }, i) => {
+                        return <Widget
+                            key={i}
+                            debug={debug}
+                            locked={locked}
+                            active={i === selected}
+                            title={title}
+                            position={position}
+                            size={size}
+                            data={data}
+                            onClose={handleCloseWidget}
+                            onSelected={() => setSelected(i)}
+                            useRuntime={i % 2 < 1}
+                            grid={100}
+                            checking={({ x, y, width, height }) => {
+                                return (
+                                    x >= 0
+                                    && y >= 0
+                                    && width >= grid * 2
+                                    && height >= grid * 2
+                                    && x + width <= window.innerWidth - 20
+                                    && y + height <= window.innerHeight - 120
+                                )
+                            }}
+                        >
+                            <TestItem />
+                        </Widget>
+                    })
+                }
+            </div>
+        </div>
     </>
 }

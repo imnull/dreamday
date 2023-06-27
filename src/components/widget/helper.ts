@@ -103,7 +103,12 @@ export const calRect = (size: TSize, pos: TPosition, offset: TPosition, resizeTy
 
 type TStateParams<T> = [T, (arg: T) => void]
 
+export const gridValue = (grid: number, value: number) => {
+    return Math.round(value / grid) * grid
+}
+
 export const createResizeHandler = (options: {
+    editing: TStateParams<boolean>;
     position: TStateParams<TPosition>;
     sizeOffset: TStateParams<TPosition>;
     resizeType: TStateParams<TResizeType>;
@@ -111,11 +116,15 @@ export const createResizeHandler = (options: {
     runtimeSize: TStateParams<TSize>;
     runtimePosition: TStateParams<TPosition>;
     debug?: boolean;
+    grid: number;
     onSelected?: () => void;
+    onResized?: (size: TSize) => void;
     useRuntime?: boolean;
+    checking?: (rect: TSize & TPosition) => boolean;
 }) => {
     const {
         debug = false,
+        editing: [editing, setEditing],
         position: [position, setPosition],
         size: [size, setSize],
         resizeType: [resizeType, setResizeType],
@@ -123,7 +132,10 @@ export const createResizeHandler = (options: {
         runtimeSize: [runtimeSize, setRuntimeSize],
         runtimePosition: [runtimePosition, setRuntimePosition],
         onSelected,
+        onResized,
         useRuntime = false,
+        grid,
+        checking,
     } = options
 
 
@@ -147,10 +159,23 @@ export const createResizeHandler = (options: {
         onEnd: ({ offset }: any) => {
             setSizeOffset({ x: 0, y: 0 })
             const { x, y, width, height } = calRect(_size, _position, offset, resizeType)
-            setPosition({ x, y })
-            setSize({ width, height })
-            setRuntimeSize({ width, height })
-            setRuntimePosition({ x, y })
+            const _x = gridValue(grid, x)
+            const _y = gridValue(grid, y)
+            const _width = gridValue(grid, width)
+            const _height = gridValue(grid, height)
+            const newPos = { x: _x, y: _y }
+            const newSize = { width: _width, height: _height }
+            setEditing(false)
+            if(typeof checking !== 'function' || checking({ ...newPos, ...newSize })) {
+                setPosition({ ...newPos })
+                setRuntimePosition({ ...newPos })
+                setSize({ ...newSize })
+                setRuntimeSize({ ...newSize })
+                typeof onResized === 'function' && onResized({ ...newSize })
+            } else {
+                setRuntimeSize({ ..._size })
+                setRuntimePosition({ ..._position })
+            }
         }
     })
 
