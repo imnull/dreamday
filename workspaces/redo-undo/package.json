@@ -1,6 +1,6 @@
 {
   "name": "@imnull/redo-undo",
-  "private": true,
+  "private": false,
   "version": "0.0.4",
   "description": "redo/undo something",
   "author": "marvin <imnull@outlook.com>",
