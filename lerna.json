@@ -3,7 +3,8 @@
   "version": "0.0.6",
   "packages": [
     "workspaces/movable",
-    "workspaces/redo-undo"
+    "workspaces/redo-undo",
+    "workspaces/component-widget"
   ],
   "npmClient": "yarn"
 }

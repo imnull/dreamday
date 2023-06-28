@@ -1,0 +1,11 @@
+.marvin-movable {
+    .menu-item {
+        font-size: 18px;
+        margin: 5px;
+        color: #999;
+        text-decoration: none;
+        &.active {
+            color: blue;
+        }
+    }
+}
