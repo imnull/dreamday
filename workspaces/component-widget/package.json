@@ -71,5 +71,6 @@
   "babel": {
     "presets": [],
     "plugins": []
-  }
+  },
+  "gitHead": "5bbf6c439870546236b829774700d099da911eaf"
 }
