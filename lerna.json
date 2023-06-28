@@ -2,8 +2,7 @@
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
   "version": "0.0.6",
   "packages": [
-    "workspaces/movable",
-    "workspaces/redo-undo"
+    "workspaces/*"
   ],
   "npmClient": "yarn"
 }
