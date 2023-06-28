@@ -70,17 +70,20 @@ type TUndoRedoSnap = {
     origin: string;
     current: string;
     history: TPatch[][];
+    maxSize: number;
 }
 
 export default class UndoRedo {
     private readonly origin: string
     private current: string
-    private history: TPatch[][]
+    private readonly history: TPatch[][]
     private cursor: number
-    constructor(origin: string = '') {
+    private maxSize: number
+    constructor(origin: string = '', maxSize: number = 100) {
         this.origin = origin
-        this.current = origin
         this.history = []
+        this.maxSize = Math.max(10, maxSize)
+        this.current = origin
         this.cursor = this.history.length
     }
 
@@ -90,11 +93,10 @@ export default class UndoRedo {
         } else if(this.cursor >= this.history.length) {
             return this.current
         }
-        const isUndo = this.cursor > this.history.length * .5
-        const slice = isUndo ? this.history.slice(this.cursor).reverse() : this.history.slice(0, this.cursor)
-        let val = isUndo ? this.current : this.origin
+        const slice = this.history.slice(this.cursor).reverse()
+        let val = this.current
         slice.forEach(patches => {
-            val = applyPatch(isUndo, val, patches)
+            val = applyPatch(true, val, patches)
         })
         return val
     }
@@ -119,6 +121,9 @@ export default class UndoRedo {
         const diff = diffChars(this.getValue(), newStr)
         const patches = diff.map(change2patch)
         const abandon = this.history.splice(this.cursor, this.history.length, patches)
+        while(this.history.length > this.maxSize) {
+            this.history.shift()
+        }
         this.current = newStr
         this.cursor = this.history.length
     }
@@ -141,13 +146,14 @@ export default class UndoRedo {
         return {
             origin: this.origin,
             current: this.current,
+            maxSize: this.maxSize,
             history: this.getHistory(),
         } as TUndoRedoSnap
     }
 
     static from(snap: TUndoRedoSnap) {
-        const { origin, current, history } = snap
-        const ur = new UndoRedo(origin)
+        const { origin, current, history, maxSize } = snap
+        const ur = new UndoRedo(origin, maxSize)
         ur.current = current
         ur.history.push(...history)
         ur.cursor = ur.history.length
