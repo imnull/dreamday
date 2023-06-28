@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import './index.scss'
 
-import Widget from '~/components/widget'
 import UndoRedo from '@imnull/redo-undo'
-import W from '@imnull/widget'
+import Widget from '@imnull/widget'
 
 const TestItem = (props: { size?: { width: number; height: number } }) => {
     const { size = { width: 0, height: 0 } } = props
@@ -121,7 +120,7 @@ export default () => {
             <div className='widget-page-dashboard' ref={setDashboard}>
                 {
                     widgets.map(({ title, position, size, data, _id }, i) => {
-                        return <W
+                        return <Widget
                             key={`_${i}_${_id}`}
                             debug={debug}
                             locked={locked}
@@ -161,7 +160,7 @@ export default () => {
                             }}
                         >
                             <TestItem />
-                        </W>
+                        </Widget>
                     })
                 }
             </div>
