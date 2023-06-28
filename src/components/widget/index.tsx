@@ -9,6 +9,8 @@ import {
     genHeight,
     TResizeType,
     gridValue,
+    positionEqual,
+    sizeEqual,
 } from './helper'
 
 const cloneChildren = (children: any, extProps: Record<string, any>, key: any = null): any => {
@@ -77,10 +79,12 @@ export default (props: {
     const [target, setTarget] = useState<HTMLElement | null>(null)
     const [tools, setTools] = useState<HTMLElement | null>(null)
 
-    const [pos, setPos] = useState({ x: gridValue(grid, _position.x), y: gridValue(grid, _position.y) })
+    const _pos = { x: gridValue(grid, _position.x), y: gridValue(grid, _position.y) }
+    const [pos, setPos] = useState(_pos)
     const [runtimePosition, setRuntimePosition] = useState({ x: gridValue(grid, _position.x), y: gridValue(grid, _position.y) })
 
-    const [size, setSize] = useState({ width: gridValue(grid, _size.width), height: gridValue(grid, _size.height) })
+    const _siz = { width: gridValue(grid, _size.width), height: gridValue(grid, _size.height) }
+    const [size, setSize] = useState(_siz)
     const [runtimeSize, setRuntimeSize] = useState({ width: gridValue(grid, _size.width), height: gridValue(grid, _size.height) })
     const [sizeOffset, setSizeOffset] = useState({ x: 0, y: 0 })
     const [resizeType, setResizeType] = useState<TResizeType>('')
@@ -252,7 +256,10 @@ export default (props: {
     }, [size])
 
     useEffect(() => {
-        typeof onChange === 'function' && onChange({ ...pos, ...size })
+        if(!positionEqual(_pos, pos) || !sizeEqual(_siz, size)) {
+            console.log(1111)
+            typeof onChange === 'function' && onChange({ ...pos, ...size })
+        }
     }, [pos, size])
 
     useEffect(() => {
@@ -283,7 +290,7 @@ export default (props: {
     }} onMouseLeave={() => {
         setShowTitle(false)
     }}>
-        {locked ? null : <div className="widget-head" ref={setTarget} style={{ transform: showTitle || editing ? `translateY(0%)` : `translateY(-100%)` }}>
+        {locked ? null : <div className="widget-head" ref={setTarget} style={{ opacity: showTitle || editing ? 1 : 0 }}>
             <div className='title'>{title}</div>
             <div className='tools' ref={setTools}>
                 <div className='btn maxium' onClick={handleMaxium}></div>

@@ -199,3 +199,11 @@ export const createResizeHandler = (options: {
     }
     return R
 }
+
+export const positionEqual = (a: TPosition, b: TPosition) => {
+    return a.x === b.x && a.y === b.y
+}
+
+export const sizeEqual = (a: TSize, b: TSize) => {
+    return a.width === b.width && a.height === b.height
+}

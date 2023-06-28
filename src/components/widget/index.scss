@@ -41,7 +41,7 @@ $transition-duration: 0.2s;
     }
 
     .widget-head {
-        transition: transform $transition-duration;
+        transition: opacity $transition-duration;
         padding: 6px 12px 4px 12px;
         background-color: #fff;
         flex-shrink: 0;
