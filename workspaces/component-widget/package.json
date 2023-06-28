@@ -1,7 +1,7 @@
 {
   "name": "@imnull/widget",
-  "version": "0.0.6",
-  "description": "> TODO: description",
+  "version": "0.0.1",
+  "description": "react component widget",
   "author": "marvin <imnull@outlook.com>",
   "homepage": "https://github.com/imnull/movable/tree/main/workspaces/component-widget#readme",
   "license": "ISC",
