@@ -4,5 +4,6 @@
   "packages": [
     "workspaces/movable",
     "workspaces/redo-undo"
-  ]
+  ],
+  "npmClient": "yarn"
 }
