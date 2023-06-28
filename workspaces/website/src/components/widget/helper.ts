@@ -1,4 +1,4 @@
-import { createMovable } from '~/libs/movable'
+import { createMovable } from '@imnull/movable'
 
 export type TPosition = { x: number; y: number }
 export type TSize = { width: number; height: number; }

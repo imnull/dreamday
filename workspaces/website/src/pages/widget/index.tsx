@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import './index.scss'
 
 import Widget from '~/components/widget'
-import UndoRedo from '~/libs/undo-redo'
+import UndoRedo from '@imnull/redo-undo'
 
 const TestItem = (props: { size?: { width: number; height: number } }) => {
     const { size = { width: 0, height: 0 } } = props

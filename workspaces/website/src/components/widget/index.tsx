@@ -1,6 +1,6 @@
 import { useCallback, useEffect, isValidElement, useState, createElement } from 'react'
 import './index.scss'
-import { createMovable } from '~/libs/movable'
+import { createMovable } from '@imnull/movable'
 import {
     TPosition, TSize, TEventArgs,
     genTranslate,

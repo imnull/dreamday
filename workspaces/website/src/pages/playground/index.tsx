@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './index.scss'
-import { TMovable, createMovable } from '~/libs/movable'
+import { TMovable, createMovable } from '@imnull/movable'
 
 export default () => {
     const [target, setTarget] = useState<HTMLElement | null>(null)
