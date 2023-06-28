@@ -1,0 +1,27 @@
+{
+  "name": "@imnull/movable",
+  "version": "0.0.0",
+  "description": "Make dom movable",
+  "author": "marvin <imnull@outlook.com>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/movable.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imnull/dreamday.git"
+  },
+  "scripts": {
+    "test": "node ./__tests__/movable.test.js",
+    "build": "tsc src/movable.ts -d -t es5 --outDir lib"
+  },
+  "bugs": {
+    "url": "https://github.com/imnull/dreamday/issues"
+  }
+}

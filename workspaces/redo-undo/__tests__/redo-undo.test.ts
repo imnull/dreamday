@@ -1,4 +1,4 @@
-import UndoRedo from "./src/libs/undo-redo"
+import UndoRedo from ".."
 
 const ur = new UndoRedo('[]')
 
