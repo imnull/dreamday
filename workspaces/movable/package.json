@@ -1,5 +1,6 @@
 {
   "name": "@imnull/movable",
+  "private": true,
   "version": "0.0.3",
   "description": "Make dom movable",
   "author": "marvin <imnull@outlook.com>",
@@ -24,5 +25,5 @@
   "bugs": {
     "url": "https://github.com/imnull/dreamday/issues"
   },
-  "gitHead": "f88c82f8ad3408840b0b4152dcdddbdce589adbc"
+  "gitHead": "bfef834cd8c3bdfd61065ae7878e39086218ecdf"
 }
