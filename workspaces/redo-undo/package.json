@@ -1,6 +1,5 @@
 {
   "name": "@imnull/redo-undo",
-  "private": false,
   "version": "0.0.5",
   "description": "redo/undo something",
   "author": "marvin <imnull@outlook.com>",
@@ -31,5 +30,8 @@
   "devDependencies": {
     "@types/diff": "^5.0.3"
   },
-  "gitHead": "bfef834cd8c3bdfd61065ae7878e39086218ecdf"
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHead": "4fc551a497b3c580089c614d504c890e01613d4d"
 }
