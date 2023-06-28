@@ -1,9 +1,5 @@
 import { createMovable } from '@imnull/movable'
-
-export type TPosition = { x: number; y: number }
-export type TSize = { width: number; height: number; }
-export type TEventArgs = { position: TPosition; data: any }
-export type TResizeType = '' | 'L' | 'T' | 'R' | 'B' | 'LT' | 'RT' | 'LB' | 'RB'
+import { TPosition, TSize, TResizeType } from './type'
 
 export const posPlus = (a: TPosition, b: TPosition) => {
     return { x: a.x + b.x, y: a.y + b.y }
@@ -150,7 +146,7 @@ export const createResizeHandler = (options: {
         },
         onMoving({ offset }) {
             setSizeOffset(offset)
-            if(useRuntime) {
+            if (useRuntime) {
                 const { x, y, width, height } = calRect(_size, _position, offset, resizeType)
                 setRuntimeSize({ width, height })
                 setRuntimePosition({ x, y })
@@ -166,7 +162,7 @@ export const createResizeHandler = (options: {
             const newPos = { x: _x, y: _y }
             const newSize = { width: _width, height: _height }
             setEditing(false)
-            if(typeof checking !== 'function' || checking({ ...newPos, ...newSize })) {
+            if (typeof checking !== 'function' || checking({ ...newPos, ...newSize })) {
                 setPosition({ ...newPos })
                 setRuntimePosition({ ...newPos })
                 setSize({ ...newSize })

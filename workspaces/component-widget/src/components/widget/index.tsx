@@ -1,13 +1,13 @@
+import React from 'react'
 import { useCallback, useEffect, isValidElement, useState, createElement } from 'react'
 import './index.scss'
 import { createMovable } from '@imnull/movable'
+import { TPosition, TSize, TEventArgs, TResizeType } from './type'
 import {
-    TPosition, TSize, TEventArgs,
     genTranslate,
     createResizeHandler,
     genWidth,
     genHeight,
-    TResizeType,
     gridValue,
     positionEqual,
     sizeEqual,
@@ -256,8 +256,7 @@ export default (props: {
     }, [size])
 
     useEffect(() => {
-        if(!positionEqual(_pos, pos) || !sizeEqual(_siz, size)) {
-            console.log(1111)
+        if (!positionEqual(_pos, pos) || !sizeEqual(_siz, size)) {
             typeof onChange === 'function' && onChange({ ...pos, ...size })
         }
     }, [pos, size])

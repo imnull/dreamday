@@ -51,7 +51,7 @@ export default () => {
     const [selected, setSelected] = useState(widgets.length - 1)
     const [debug, setDebug] = useState(false)
     const [locked, setLocked] = useState(false)
-    const grid = 100
+    const grid = 1
 
     useEffect(() => {
         if (!dashboard) {
@@ -112,7 +112,7 @@ export default () => {
                             onClose={handleCloseWidget}
                             onSelected={() => setSelected(i)}
                             useRuntime={i % 2 < 1}
-                            grid={100}
+                            grid={grid}
                             checking={({ x, y, width, height }) => {
                                 return (
                                     x >= 0
