@@ -121,7 +121,7 @@ export default () => {
                 {
                     widgets.map(({ title, position, size, data, _id }, i) => {
                         return <Widget
-                            debug={false}
+                            debug={debug}
                             width={size.width}
                             height={size.height}
                             left={position.x}
