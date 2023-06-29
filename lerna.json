@@ -5,7 +5,7 @@
     "workspaces/movable",
     "workspaces/redo-undo",
     "workspaces/component-widget",
-    "workspaces/react-comps"
+    "workspaces/components"
   ],
   "npmClient": "yarn"
 }
