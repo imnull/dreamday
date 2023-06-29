@@ -1,189 +1,21 @@
-import { TRectParams, TJoyStickProps, TResizeType, TSize, TMoveEventArgs } from '~/components/type'
 import './index.scss'
+import { useEffect, useState } from 'react'
 
+import { TWidgetProps } from '~/components/type'
 import { JoyStick } from '~/components'
-import { CSSProperties, useEffect, useState } from 'react'
-import { TPosition } from '@imnull/movable'
+import ResizeHandler from './resize-handler'
 
-const getCursor = (type: TResizeType) => {
-    switch (type) {
-        case 'LT':
-        case 'RB':
-            return 'nwse-resize'
-        case 'LB':
-        case 'RT':
-            return 'nesw-resize'
-        case 'R':
-        case 'L':
-            return 'ew-resize'
-        case 'T':
-        case 'B':
-            return 'ns-resize'
-    }
-    return 'default'
-}
+import { calPadding } from './helper'
 
-const calRect = (type: TResizeType, size: number, corner: number) => {
-    switch (type) {
-        case 'R':
-            return { top: corner, right: 0, bottom: corner, width: size, zIndex: 3 }
-        case 'B':
-            return { left: corner, right: corner, bottom: 0, height: size, zIndex: 3 }
-        case 'L':
-            return { left: 0, top: corner, bottom: corner, width: size, zIndex: 3 }
-        case 'T':
-            return { left: corner, right: corner, top: 0, height: size, zIndex: 3 }
-        case 'LT':
-            return { left: 0, top: 0, width: corner, height: corner, zIndex: 6 }
-        case 'RT':
-            return { right: 0, top: 0, width: corner, height: corner, zIndex: 6 }
-        case 'RB':
-            return { right: 0, bottom: 0, width: corner, height: corner, zIndex: 6 }
-        case 'LB':
-            return { left: 0, bottom: 0, width: corner, height: corner, zIndex: 6 }
-    }
-    return {}
-}
-
-type TCalResult = TSize & TPosition & { left: number; top: number; ox: number; oy: number; ow: number; oh: number; w: number; h: number; }
-
-type TCalRes = { x: number; y: number; w: number; h: number; }
-
-const calOffset = (type: TResizeType, pos: TPosition, box: TSize, min: TSize, max: TSize, offset: TPosition) => {
-    const minX = min.width - box.width
-    const minY = min.height - box.height
-    let x = 0, y = 0, ox = 0, oy = 0, w = 0, h = 0, ow = 0, oh = 0
-
-    if (type.includes('L')) {
-        x = Math.max(minX, -offset.x)
-        ox = -x
-    }
-    if (type.includes('R')) {
-        x = Math.max(minX, offset.x)
-    }
-    if (type.includes('T')) {
-        y = Math.max(minY, -offset.y)
-        oy = -y
-    }
-    if (type.includes('B')) {
-        y = Math.max(minY, offset.y)
-    }
-
-    w = box.width + x
-    h = box.height + y
-    ow = box.width + x
-    oh = box.height + y
-    return {
-        x, y, ox, oy,
-        w, h, ow, oh,
-        width: box.width + x, height: box.height + y,
-        left: pos.x + ox, top: pos.y + oy,
-    } as TCalResult
-}
-
-type TData = {
-    pos: TPosition,
-    box: TSize;
-    min: TSize;
-    max: TSize;
-}
-
-const ResizeHandler = (props: {
-    debug?: boolean;
-    size: number;
-    corner: number;
-    boxLeft: number;
-    boxTop: number;
-    boxWidth: number;
-    boxHeight: number;
-    boxMinWidth: number;
-    boxMinHeight: number;
-    boxMaxWidth: number;
-    boxMaxHeight: number;
-    type: TResizeType;
-    onResize: (offsetSize: TCalRes) => void;
-    onEnd: (offsetSize: TCalRes) => void;
-}) => {
-    const {
-        size,
-        corner,
-        debug = false,
-        type,
-        boxLeft, boxTop,
-        boxWidth, boxHeight,
-        boxMinWidth, boxMinHeight,
-        boxMaxWidth, boxMaxHeight,
-        onResize, onEnd,
-    } = props
-    const cursor = getCursor(type)
-    const oldCursor = document.body.style.cursor
-
-    return <div className={`-make-react-comp-resizebox-handler- -${type}-`} style={{
-        cursor,
-        ...calRect(type, size, corner)
-    }}>
-        <JoyStick
-            debug={debug}
-            fill={true}
-            width={size}
-            height={size}
-            data={{
-                pos: { x: boxLeft, y: boxTop },
-                box: { width: boxWidth, height: boxHeight },
-                min: { width: boxMinWidth, height: boxMinHeight },
-                max: { width: boxMaxWidth, height: boxMaxHeight }
-            }}
-            onStart={() => {
-                document.body.style.cursor = cursor
-            }}
-            onMoving={({ offset, movable }) => {
-                const { pos, box, min, max } = movable.getSnap() as TData
-                const { x, y, ox, oy } = calOffset(type, pos, box, min, max, offset)
-                onResize({ x: ox, y: oy, w: x, h: y, })
-            }}
-            onEnd={({ offset, movable }) => {
-                document.body.style.cursor = oldCursor
-                const { pos, box, min, max } = movable.getSnap() as TData
-                const { width, height, left, top } = calOffset(type, pos, box, min, max, offset)
-                onEnd({ w: width, h: height, y: top, x: left })
-                // onEnd({ width, height, left, top, ox, oy, w, h, ow, oh, y: top, x: left })
-            }}
-        />
-    </div>
-}
-
-const calPadding = (padding?: number | number[]): CSSProperties => {
-    if (Array.isArray(padding)) {
-        const [top = 0, right = top, bottom = top, left = right] = padding
-        return { top, right, bottom, left }
-    } else if (typeof padding !== 'number' || isNaN(padding)) {
-        return calPadding([0])
-    } else {
-        return calPadding([padding])
-    }
-}
-
-export default (props: TRectParams & {
-    debug?: boolean,
-    stickSize?: number;
-    cornerSize?: number;
-    minWidth?: number;
-    minHeight?: number;
-    maxWidth?: number;
-    maxHeight?: number;
-    padding?: number | number[];
-    normalClass?: string;
-    active?: boolean;
-    activeClass?: string;
-}) => {
+export default (props: TWidgetProps) => {
     const {
         debug = false,
         left = 0,
         top = 0,
         width = 240,
         height = 180,
-        minWidth = 48,
-        minHeight = 48,
+        minWidth = 128,
+        minHeight = 128,
         maxWidth = -1,
         maxHeight = -1,
         stickSize = 4,
@@ -192,6 +24,8 @@ export default (props: TRectParams & {
         active,
         activeClass,
         normalClass,
+        children,
+        title = 'Untitled',
     } = props
 
     const [x, setX] = useState(left)
@@ -203,6 +37,8 @@ export default (props: TRectParams & {
     const [oy, setOY] = useState(0)
     const [ow, setOW] = useState(0)
     const [oh, setOH] = useState(0)
+
+    const [newChildren, setNewChildren] = useState(children)
 
     useEffect(() => {
     }, [ox, oy])
@@ -251,6 +87,7 @@ export default (props: TRectParams & {
                         setOY(0)
                     }}
                 />
+                <div className='-widget-title-'>{title}</div>
             </div>
             <div className='-resize-container-'>
                 <ResizeHandler {...itemProps}
@@ -379,7 +216,7 @@ export default (props: TRectParams & {
                     }}
                 />
             </div>
-            <div className='-widget-content-'></div>
+            <div className='-widget-content-'>{newChildren}</div>
         </div>
     </div>
 }

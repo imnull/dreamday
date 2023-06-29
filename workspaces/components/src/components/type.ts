@@ -19,4 +19,22 @@ export type TJoyStickProps<T = any> = TRectParams & {
 }
 declare const JoyStick: (props: TJoyStickProps) => JSX.Element
 
-export { JoyStick }
+export type TWidgetProps = TRectParams & {
+    debug?: boolean,
+    stickSize?: number;
+    cornerSize?: number;
+    minWidth?: number;
+    minHeight?: number;
+    maxWidth?: number;
+    maxHeight?: number;
+    padding?: number | number[];
+    normalClass?: string;
+    active?: boolean;
+    activeClass?: string;
+    children?: any;
+    title?: string;
+}
+declare const Widget: (props: TWidgetProps) => JSX.Element
+
+
+export { JoyStick, Widget }

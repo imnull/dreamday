@@ -6,6 +6,6 @@ import { Widget } from '~/components'
 export default () => {
 
     return <>
-        <Widget debug={false} left={120} top={130} padding={3} normalClass='widget-normal' active activeClass='widget-active' />
+        <Widget title='Widget-01' debug={false} left={120} top={130} padding={3} normalClass='widget-normal' active activeClass='widget-active' />
     </>
 }
