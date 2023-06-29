@@ -1,0 +1,14 @@
+.stick-container {
+    position: absolute;
+    user-select: none;
+    background-color: rgba(0,0,0,0.1);
+    border: 2px solid #fff;
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
+    transition: box-shadow 0.5s;
+    cursor: move;
+
+    &.shadow {
+        box-shadow: 2px 3px 12px rgba(0, 0, 0, 0.2);
+    }
+}

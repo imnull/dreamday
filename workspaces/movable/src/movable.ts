@@ -88,4 +88,4 @@ type TProps<T = any> = {
     onEnd?: (args: { position: TPosition; offset: TPosition; }) => void;
 }
 export type TPosition = { x: number; y: number; }
-export type TMovable = ReturnType<typeof createMovable>
+export type TMovable<T = any> = ReturnType<typeof createMovable<T>>

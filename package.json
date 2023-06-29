@@ -7,8 +7,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "lerna run build",
-    "widget": "yarn workspace @imnull/widget dev",
-    "demo": "yarn workspace website dev",
+    "build:movable": "yarn workspace @imnull/movable build",
+    "dev:widget": "yarn workspace @imnull/widget dev",
+    "dev:website": "yarn workspace website dev",
+    "dev:comps": "yarn workspace @imnull/react-comps dev",
     "prepub": "lerna run build",
     "pub": "lerna publish"
   },

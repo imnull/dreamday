@@ -1,0 +1,9 @@
+.-make-react-comp-joystick- {
+    box-sizing: border-box;
+    user-select: none;
+    position: relative;
+    &.-debug- {
+        background-color: rgba(0, 0, 0, 0.5);
+        border: 1px solid #fff;
+    }
+}
