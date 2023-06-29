@@ -31,7 +31,8 @@
         "react-router-dom": "^6.14.0",
         "@imnull/movable": "*",
         "@imnull/redo-undo": "*",
-        "@imnull/widget": "*"
+        "@imnull/widget": "*",
+        "@imnull/react-comps": "*"
     },
     "devDependencies": {
         "@babel/core": "^7.22.5",

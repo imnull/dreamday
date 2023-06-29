@@ -5,7 +5,7 @@ import { TWidgetProps } from '~/components/type'
 import { JoyStick } from '~/components'
 import ResizeHandler from './resize-handler'
 
-import { calPadding } from './helper'
+import { calPadding, cloneChildren } from './helper'
 
 export default (props: TWidgetProps) => {
     const {
@@ -47,8 +47,12 @@ export default (props: TWidgetProps) => {
     }, [x, y])
 
     useEffect(() => {
-        // console.log(w, h)
-    }, [w, h])
+        const size = { width: w + ow, height: h + oh }
+        const newChildren = cloneChildren(children, { size })
+        setNewChildren(newChildren)
+    }, [w, h, ow, oh, children])
+
+    
 
     const itemProps = {
         debug,
