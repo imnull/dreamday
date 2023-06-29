@@ -155,7 +155,7 @@ const ResizeHandler = (props: {
 const calPadding = (padding?: number | number[]): CSSProperties => {
     if (Array.isArray(padding)) {
         const [top = 0, right = top, bottom = top, left = right] = padding
-        return { paddingTop: top, paddingRight: right, paddingBottom: bottom, paddingLeft: left }
+        return { top, right, bottom, left }
     } else if (typeof padding !== 'number' || isNaN(padding)) {
         return calPadding([0])
     } else {
@@ -171,8 +171,10 @@ export default (props: TRectParams & {
     minHeight?: number;
     maxWidth?: number;
     maxHeight?: number;
-    title?: string;
     padding?: number | number[];
+    normalClass?: string;
+    active?: boolean;
+    activeClass?: string;
 }) => {
     const {
         debug = false,
@@ -186,8 +188,10 @@ export default (props: TRectParams & {
         maxHeight = -1,
         stickSize = 4,
         cornerSize = 10,
-        title = 'Untitled',
         padding = 0,
+        active,
+        activeClass,
+        normalClass,
     } = props
 
     const [x, setX] = useState(left)
@@ -224,157 +228,158 @@ export default (props: TRectParams & {
         boxMaxHeight: maxHeight,
     }
 
-    return <div className={'-make-react-comp-resizebox-'} style={{
+    return <div className={'-make-react-comp-resizebox-' + (debug ? ' debug' : '')} style={{
         width: w + ow,
         height: h + oh,
         transform: `translateX(${x + ox}px) translateY(${y + oy}px)`,
     }}>
-        <div className='-widget-head-'>
-            <JoyStick
-                debug={debug}
-                fill
-                left={x}
-                top={y}
-                onMoving={({ offset }) => {
-                    setOX(offset.x)
-                    setOY(offset.y)
-                }}
-                onEnd={({ position }) => {
-                    setX(position.x)
-                    setY(position.y)
-                    setOX(0)
-                    setOY(0)
-                }}
-            />
-            <div className='-widget-title-'>{title}</div>
-        </div>
-        <div className='-resize-container-'>
-            <ResizeHandler {...itemProps}
-                type={'T'}
-                onResize={rect => {
-                    setOY(rect.y)
-                    setOH(rect.h)
-                }}
-                onEnd={rect => {
-                    setY(rect.y)
-                    setH(rect.h)
-                    setOX(0)
-                    setOY(0)
-                    setOW(0)
-                    setOH(0)
-                }}
-            />
-            <ResizeHandler {...itemProps}
-                type={'R'}
-                onResize={size => {
-                    setOW(size.w)
-                }}
-                onEnd={size => {
-                    setW(size.w)
-                    setOX(0)
-                    setOY(0)
-                    setOW(0)
-                    setOH(0)
-                }}
-            />
-            <ResizeHandler {...itemProps}
-                type={'B'}
-                onResize={size => {
-                    setOH(size.h)
-                }}
-                onEnd={size => {
-                    setH(size.h)
-                    setOX(0)
-                    setOY(0)
-                    setOW(0)
-                    setOH(0)
-                }}
-            />
-            <ResizeHandler {...itemProps}
-                type={'L'}
-                onResize={rect => {
-                    setOX(rect.x)
-                    setOW(rect.w)
-                }}
-                onEnd={rect => {
-                    setX(rect.x)
-                    setW(rect.w)
-                    setOX(0)
-                    setOY(0)
-                    setOW(0)
-                    setOH(0)
-                }}
-            />
+        <div className={'-widget-container-' + (normalClass ? ` ${normalClass}` : '') + (active ? ` ${activeClass || ''}` : '')} style={calPadding(padding)}>
+            <div className='-widget-head-'>
+                <JoyStick
+                    debug={debug}
+                    fill
+                    left={x}
+                    top={y}
+                    onMoving={({ offset }) => {
+                        setOX(offset.x)
+                        setOY(offset.y)
+                    }}
+                    onEnd={({ position }) => {
+                        setX(position.x)
+                        setY(position.y)
+                        setOX(0)
+                        setOY(0)
+                    }}
+                />
+            </div>
+            <div className='-resize-container-'>
+                <ResizeHandler {...itemProps}
+                    type={'T'}
+                    onResize={rect => {
+                        setOY(rect.y)
+                        setOH(rect.h)
+                    }}
+                    onEnd={rect => {
+                        setY(rect.y)
+                        setH(rect.h)
+                        setOX(0)
+                        setOY(0)
+                        setOW(0)
+                        setOH(0)
+                    }}
+                />
+                <ResizeHandler {...itemProps}
+                    type={'R'}
+                    onResize={size => {
+                        setOW(size.w)
+                    }}
+                    onEnd={size => {
+                        setW(size.w)
+                        setOX(0)
+                        setOY(0)
+                        setOW(0)
+                        setOH(0)
+                    }}
+                />
+                <ResizeHandler {...itemProps}
+                    type={'B'}
+                    onResize={size => {
+                        setOH(size.h)
+                    }}
+                    onEnd={size => {
+                        setH(size.h)
+                        setOX(0)
+                        setOY(0)
+                        setOW(0)
+                        setOH(0)
+                    }}
+                />
+                <ResizeHandler {...itemProps}
+                    type={'L'}
+                    onResize={rect => {
+                        setOX(rect.x)
+                        setOW(rect.w)
+                    }}
+                    onEnd={rect => {
+                        setX(rect.x)
+                        setW(rect.w)
+                        setOX(0)
+                        setOY(0)
+                        setOW(0)
+                        setOH(0)
+                    }}
+                />
 
-            <ResizeHandler {...itemProps}
-                type={'LT'}
-                onResize={rect => {
-                    setOX(rect.x)
-                    setOY(rect.y)
-                    setOW(rect.w)
-                    setOH(rect.h)
-                }}
-                onEnd={rect => {
-                    setX(rect.x)
-                    setY(rect.y)
-                    setW(rect.w)
-                    setH(rect.h)
-                    setOX(0)
-                    setOY(0)
-                    setOW(0)
-                    setOH(0)
-                }}
-            />
-            <ResizeHandler {...itemProps}
-                type={'RT'}
-                onResize={rect => {
-                    setOY(rect.y)
-                    setOW(rect.w)
-                    setOH(rect.h)
-                }}
-                onEnd={rect => {
-                    setY(rect.y)
-                    setW(rect.w)
-                    setH(rect.h)
-                    setOX(0)
-                    setOY(0)
-                    setOW(0)
-                    setOH(0)
-                }}
-            />
-            <ResizeHandler {...itemProps}
-                type={'RB'}
-                onResize={size => {
-                    setOW(size.w)
-                    setOH(size.h)
-                }}
-                onEnd={size => {
-                    setW(size.w)
-                    setH(size.h)
-                    setOX(0)
-                    setOY(0)
-                    setOW(0)
-                    setOH(0)
-                }}
-            />
-            <ResizeHandler {...itemProps}
-                type={'LB'}
-                onResize={rect => {
-                    setOX(rect.x)
-                    setOW(rect.w)
-                    setOH(rect.h)
-                }}
-                onEnd={rect => {
-                    setX(rect.x)
-                    setW(rect.w)
-                    setH(rect.h)
-                    setOX(0)
-                    setOY(0)
-                    setOW(0)
-                    setOH(0)
-                }}
-            />
+                <ResizeHandler {...itemProps}
+                    type={'LT'}
+                    onResize={rect => {
+                        setOX(rect.x)
+                        setOY(rect.y)
+                        setOW(rect.w)
+                        setOH(rect.h)
+                    }}
+                    onEnd={rect => {
+                        setX(rect.x)
+                        setY(rect.y)
+                        setW(rect.w)
+                        setH(rect.h)
+                        setOX(0)
+                        setOY(0)
+                        setOW(0)
+                        setOH(0)
+                    }}
+                />
+                <ResizeHandler {...itemProps}
+                    type={'RT'}
+                    onResize={rect => {
+                        setOY(rect.y)
+                        setOW(rect.w)
+                        setOH(rect.h)
+                    }}
+                    onEnd={rect => {
+                        setY(rect.y)
+                        setW(rect.w)
+                        setH(rect.h)
+                        setOX(0)
+                        setOY(0)
+                        setOW(0)
+                        setOH(0)
+                    }}
+                />
+                <ResizeHandler {...itemProps}
+                    type={'RB'}
+                    onResize={size => {
+                        setOW(size.w)
+                        setOH(size.h)
+                    }}
+                    onEnd={size => {
+                        setW(size.w)
+                        setH(size.h)
+                        setOX(0)
+                        setOY(0)
+                        setOW(0)
+                        setOH(0)
+                    }}
+                />
+                <ResizeHandler {...itemProps}
+                    type={'LB'}
+                    onResize={rect => {
+                        setOX(rect.x)
+                        setOW(rect.w)
+                        setOH(rect.h)
+                    }}
+                    onEnd={rect => {
+                        setX(rect.x)
+                        setW(rect.w)
+                        setH(rect.h)
+                        setOX(0)
+                        setOY(0)
+                        setOW(0)
+                        setOH(0)
+                    }}
+                />
+            </div>
+            <div className='-widget-content-'></div>
         </div>
-        <div className='-widget-content-' style={calPadding(padding)}></div>
     </div>
 }

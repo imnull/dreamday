@@ -1,47 +1,56 @@
 .-make-react-comp-resizebox- {
     position: relative;
     user-select: none;
-    box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    border-radius: 6px;
 
-    .-resize-container- {
-        .-make-react-comp-resizebox-handler- {
-            position: absolute;
-        }
+    &.debug {
+        background-color: rgba(0, 0, 0, 0.1);
     }
 
-    .-widget-head- {
-        height: 36px;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        background-color: rgba(0, 0, 0, 0.2);
-        cursor: move;
-        display: flex;
-        flex-direction: row;
-        box-sizing: border-box;
-        align-items: center;
-        padding: 2px 14px 2px 14px;
-        z-index: 5;
-        color: #fff;
-        user-select: none;
-
-        .-widget-title- {
-            font-size: 18px;
-            font-weight: bold;
-        }
-    }
-
-    .-widget-content- {
+    .-widget-container- {
         position: absolute;
         left: 0;
         top: 0;
         right: 0;
         bottom: 0;
-        background-color: rgba(0, 0, 0, 0.1);
-        z-index: 0;
-        backdrop-filter: blur(2px);
+
+        .-resize-container- {
+            .-make-react-comp-resizebox-handler- {
+                position: absolute;
+            }
+        }
+
+        .-widget-head- {
+            height: 36px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.2);
+            cursor: move;
+            display: flex;
+            flex-direction: row;
+            box-sizing: border-box;
+            align-items: center;
+            padding: 2px 14px 2px 14px;
+            z-index: 5;
+            color: #fff;
+            user-select: none;
+
+            .-widget-title- {
+                font-size: 18px;
+                font-weight: bold;
+            }
+        }
+
+        .-widget-content- {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.1);
+            z-index: 0;
+            backdrop-filter: blur(2px);
+        }
     }
 }
