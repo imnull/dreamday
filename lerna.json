@@ -4,7 +4,8 @@
   "packages": [
     "workspaces/movable",
     "workspaces/redo-undo",
-    "workspaces/component-widget"
+    "workspaces/component-widget",
+    "workspaces/react-comps"
   ],
   "npmClient": "yarn"
 }
