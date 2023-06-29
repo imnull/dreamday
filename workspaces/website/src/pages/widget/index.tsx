@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import './index.scss'
 
 import UndoRedo from '@imnull/redo-undo'
-import Widget from '@imnull/widget'
+import { Widget } from '@imnull/react-comps'
 
 const TestItem = (props: { size?: { width: number; height: number } }) => {
     const { size = { width: 0, height: 0 } } = props
@@ -121,43 +121,12 @@ export default () => {
                 {
                     widgets.map(({ title, position, size, data, _id }, i) => {
                         return <Widget
-                            key={`_${i}_${_id}`}
-                            debug={debug}
-                            locked={locked}
-                            active={i === selected}
-                            title={title}
-                            position={position}
-                            size={size}
-                            data={data}
-                            onClose={handleCloseWidget}
-                            onSelected={() => setSelected(i)}
-                            useRuntime={i % 2 < 1}
-                            grid={100}
-                            checking={({ x, y, width, height }) => {
-                                return (
-                                    x >= 0
-                                    && y >= 0
-                                    && width >= grid * 2
-                                    && height >= grid * 2
-                                    && x + width <= window.innerWidth - 20
-                                    && y + height <= window.innerHeight - 120
-                                )
-                            }}
-                            onChange={rect => {
-                                const w = [...widgets]
-                                const oldItem = w[i]
-                                const newRect = { position: { x: rect.x, y: rect.y }, size: { width: rect.width, height: rect.height } }
-                                const item = { ...oldItem, ...newRect }
-                                w.splice(i, 1, item as any)
-                                setWidgets(w)
-                                item._id += 1
-                                const current = JSON.stringify(w)
-                                if (ur.needUpdate(current)) {
-                                    ur.update(current)
-                                    setCanRedo(ur.canRedo())
-                                    setCanUndo(ur.canUndo())
-                                }
-                            }}
+                            debug={false}
+                            width={size.width}
+                            height={size.height}
+                            left={position.x}
+                            top={position.y}
+                            key={i}
                         >
                             <TestItem />
                         </Widget>

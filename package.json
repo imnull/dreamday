@@ -8,8 +8,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "lerna run build",
     "build:movable": "yarn workspace @imnull/movable build",
+    "build:comps": "yarn workspace @imnull/react-comps build",
+    "build:widget": "yarn workspace @imnull/widget build",
     "dev:widget": "yarn workspace @imnull/widget dev",
-    "dev:website": "yarn workspace website dev",
+    "dev:web": "yarn workspace website dev",
     "dev:comps": "yarn workspace @imnull/react-comps dev",
     "prepub": "lerna run build",
     "pub": "lerna publish"

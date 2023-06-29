@@ -1,5 +1,5 @@
 import './index.scss'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { TWidgetProps } from '~/components/type'
 import { JoyStick } from '~/components'

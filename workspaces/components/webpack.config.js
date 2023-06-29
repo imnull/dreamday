@@ -1,7 +1,7 @@
 const path = require('path')
-const fs = require('fs')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 
 const createOptimization = (esbuild) => {
@@ -51,10 +51,42 @@ module.exports = (options) => {
         port = 8080,
     } = options
 
+    const plugins = []
+    if (mode === 'production') {
+        plugins.push(
+            new CleanWebpackPlugin({
+                verbose: true
+            }),
+            new CopyWebpackPlugin({
+                patterns: [
+                    {
+                        from: 'src/components/type.ts',
+                        to: 'components.d.ts'
+                    }
+                ]
+            })
+        )
+    } else {
+        plugins.push(
+            new HTMLWebpackPlugin({
+                template: path.resolve(__dirname, 'src/template.html'),
+                filename: 'index.html',
+                inject: 'body',
+                hash: true,
+            }),
+        )
+    }
+
+    const externals = {}
+    if (mode === 'production') {
+        externals.react = 'commonjs react'
+    }
     const config = {
-        entry: path.resolve(__dirname, 'src/index'),
+        entry: mode === 'production' ? path.resolve(__dirname, 'src/components/index') : path.resolve(__dirname, 'src/index'),
         output: {
-            path: path.resolve(__dirname, 'dist')
+            path: path.resolve(__dirname, 'lib'),
+            filename: mode === 'production' ? 'components.js' : 'index.js',
+            libraryTarget: 'commonjs2',
         },
         mode,
         resolve: {
@@ -77,17 +109,8 @@ module.exports = (options) => {
                 },
             ]
         },
-        plugins: [
-            new HTMLWebpackPlugin({
-                template: path.resolve(__dirname, 'src/template.html'),
-                filename: 'index.html',
-                inject: 'body',
-                hash: true,
-            }),
-            new CleanWebpackPlugin({
-                verbose: true
-            })
-        ],
+        plugins,
+        externals,
         devServer: {
             port,
             open: true,
@@ -96,7 +119,7 @@ module.exports = (options) => {
     }
 
     if (mode === 'production') {
-        config.optimization = createOptimization(esbuild)
+        // config.optimization = createOptimization(esbuild)
     }
     return config
 }

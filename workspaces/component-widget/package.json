@@ -35,7 +35,7 @@
     "@": "."
   },
   "dependencies": {
-    "@imnull/movable": "^0.0.7",
+    "@imnull/movable": "*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
