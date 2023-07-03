@@ -13,7 +13,6 @@
     "dev:widget": "yarn workspace @imnull/widget dev",
     "dev:web": "yarn workspace website dev",
     "dev:comps": "yarn workspace @imnull/react-comps dev",
-    "prepub": "lerna run build",
     "pub": "lerna publish"
   },
   "repository": {
