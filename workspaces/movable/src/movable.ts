@@ -84,8 +84,37 @@ type TProps<T = any> = {
     grid?: number;
     snap?: T;
     onStart?: () => void;
-    onMoving?: (args: { position: TPosition; offset: TPosition; }) => void;
-    onEnd?: (args: { position: TPosition; offset: TPosition; }) => void;
+    onMoving?: (args: TArgs) => void;
+    onEnd?: (args: TArgs) => void;
 }
+
 export type TPosition = { x: number; y: number; }
+export type TArgs = { position: TPosition; offset: TPosition; }
 export type TMovable<T = any> = ReturnType<typeof createMovable<T>>
+
+export const useMovable = (props: {
+    update?: (pos: TPosition) => void;
+    debug?: boolean;
+    onChange?: (args: TArgs) => void;
+}) => {
+    const { update, debug = false, onChange } = props
+
+    const _onChange = (args: TArgs) => {
+        const _pos = { ...args.position }
+        typeof update === 'function' && update(_pos)
+        typeof onChange === 'function' && onChange(args)
+    }
+
+    const m = createMovable({
+        debug,
+        onMoving(args) {
+            _onChange(args)
+        },
+        onEnd(args) {
+            m.update(args.position)
+            _onChange(args)
+        }
+    })
+
+    return m
+}

@@ -11,7 +11,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMovable = void 0;
+exports.useMovable = exports.createMovable = void 0;
 var createMovable = function (props) {
     if (props === void 0) { props = {}; }
     var onStart = props.onStart, onMoving = props.onMoving, onEnd = props.onEnd, _a = props.debug, debug = _a === void 0 ? false : _a, _b = props.grid, _grid = _b === void 0 ? 1 : _b, _c = props.snap, snap = _c === void 0 ? null : _c;
@@ -85,3 +85,23 @@ var createMovable = function (props) {
     return R;
 };
 exports.createMovable = createMovable;
+var useMovable = function (props) {
+    var update = props.update, _a = props.debug, debug = _a === void 0 ? false : _a, onChange = props.onChange;
+    var _onChange = function (args) {
+        var _pos = __assign({}, args.position);
+        typeof update === 'function' && update(_pos);
+        typeof onChange === 'function' && onChange(args);
+    };
+    var m = (0, exports.createMovable)({
+        debug: debug,
+        onMoving: function (args) {
+            _onChange(args);
+        },
+        onEnd: function (args) {
+            m.update(args.position);
+            _onChange(args);
+        }
+    });
+    return m;
+};
+exports.useMovable = useMovable;
