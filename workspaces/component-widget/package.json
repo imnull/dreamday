@@ -1,6 +1,6 @@
 {
   "name": "@imnull/widget",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "react component widget",
   "author": "marvin <imnull@outlook.com>",
   "homepage": "https://github.com/imnull/movable/tree/main/workspaces/component-widget#readme",
@@ -35,7 +35,7 @@
     "@": "."
   },
   "dependencies": {
-    "@imnull/movable": "^0.0.10",
+    "@imnull/movable": "^0.0.11",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
