@@ -26,6 +26,8 @@ export declare const useMovable: (props: {
     update?: (pos: TPosition) => void;
     debug?: boolean;
     onChange?: (args: TArgs) => void;
+    reducer?: ((pos: TPosition) => TPosition)[];
+    grid?: number;
 }) => {
     snap(s: any): void;
     getSnap(): any;

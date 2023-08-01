@@ -86,19 +86,23 @@ var createMovable = function (props) {
 };
 exports.createMovable = createMovable;
 var useMovable = function (props) {
-    var update = props.update, _a = props.debug, debug = _a === void 0 ? false : _a, onChange = props.onChange;
+    var update = props.update, _a = props.debug, debug = _a === void 0 ? false : _a, onChange = props.onChange, _b = props.reducer, reducer = _b === void 0 ? [] : _b, _c = props.grid, grid = _c === void 0 ? 1 : _c;
+    var _reducer = function (pos) {
+        return reducer.reduce(function (pos, reduce) { return reduce(pos); }, pos);
+    };
     var _onChange = function (args) {
-        var _pos = __assign({}, args.position);
+        var _pos = _reducer(__assign({}, args.position));
         typeof update === 'function' && update(_pos);
         typeof onChange === 'function' && onChange(args);
     };
     var m = (0, exports.createMovable)({
         debug: debug,
+        grid: grid,
         onMoving: function (args) {
             _onChange(args);
         },
         onEnd: function (args) {
-            m.update(args.position);
+            m.update(_reducer(args.position));
             _onChange(args);
         }
     });

@@ -96,22 +96,29 @@ export const useMovable = (props: {
     update?: (pos: TPosition) => void;
     debug?: boolean;
     onChange?: (args: TArgs) => void;
+    reducer?: ((pos: TPosition) => TPosition)[];
+    grid?: number;
 }) => {
-    const { update, debug = false, onChange } = props
+    const { update, debug = false, onChange, reducer = [], grid = 1 } = props
+
+    const _reducer = (pos: TPosition) => {
+        return reducer.reduce((pos, reduce) => reduce(pos), pos)
+    }
 
     const _onChange = (args: TArgs) => {
-        const _pos = { ...args.position }
+        const _pos = _reducer({ ...args.position })
         typeof update === 'function' && update(_pos)
         typeof onChange === 'function' && onChange(args)
     }
 
     const m = createMovable({
         debug,
+        grid,
         onMoving(args) {
             _onChange(args)
         },
         onEnd(args) {
-            m.update(args.position)
+            m.update(_reducer(args.position))
             _onChange(args)
         }
     })
